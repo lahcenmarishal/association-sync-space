@@ -166,7 +166,7 @@ function CaissePage() {
       ouvrirRapportWeb({
         titre: "تقرير الصندوق اليومي",
         sousTitre: `${filtered.length} صندوق`,
-        association: params?.nom_association ?? "جمعية الذهب للماء الصالح للشرب والتنمية والتعاون",
+        association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
         resume: [
           ["عدد الصناديق", String(filtered.length)],
           ["الرصيد السابق", formatMontant(soldeAnterieur, devise)],

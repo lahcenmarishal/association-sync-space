@@ -124,7 +124,7 @@ function Landing() {
         <section className="grid items-center gap-10 py-14 md:grid-cols-[1.4fr_1fr] md:py-20">
           <div>
             <p className="mb-4 inline-flex rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-              {t("جمعية الذهب للماء الصالح للشرب والتنمية والتعاون")}
+              {t("جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون")}
             </p>
             <h1 className="max-w-3xl font-display text-4xl font-semibold leading-tight md:text-5xl">
               {t("L'eau potable, le développement et la coopération au service des habitants.")}

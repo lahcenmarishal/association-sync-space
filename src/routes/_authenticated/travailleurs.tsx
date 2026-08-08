@@ -258,7 +258,7 @@ function TravailleursPage() {
   const telechargerToutes = (liste: Travailleur[]) =>
     telechargerFichesPdf(
       liste,
-      params?.nom_association ?? "جمعية الذهب للماء الصالح للشرب والتنمية والتعاون",
+      params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
       devise,
     );
 
@@ -354,7 +354,7 @@ function TravailleursPage() {
                           await telechargerFichePdf(
                             w,
                             params?.nom_association ??
-                              "جمعية الذهب للماء الصالح للشرب والتنمية والتعاون",
+                              "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
                             devise,
                           );
                           toast.success(t("Fiche téléchargée"), { id });

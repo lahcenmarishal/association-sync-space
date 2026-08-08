@@ -191,7 +191,7 @@ function ActivitesPage() {
       ouvrirRapportWeb({
         titre: "تقرير الأنشطة",
         sousTitre: `${filtered.length} نشاط`,
-        association: params?.nom_association ?? "جمعية الذهب للماء الصالح للشرب والتنمية والتعاون",
+        association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
         resume: [
           ["عدد الأنشطة", String(filtered.length)],
           [

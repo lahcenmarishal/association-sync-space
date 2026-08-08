@@ -215,7 +215,7 @@ function RecettesPage() {
       ouvrirRapportWeb({
         titre: "تقرير المداخيل",
         sousTitre: `${filtered.length} عملية — المجموع ${formatMontant(total, devise)}`,
-        association: params?.nom_association ?? "جمعية الذهب للماء الصالح للشرب والتنمية والتعاون",
+        association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
         resume: [
           ["عدد العمليات", String(filtered.length)],
           ["مجموع المداخيل", formatMontant(total, devise)],
