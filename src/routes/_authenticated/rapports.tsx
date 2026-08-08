@@ -153,13 +153,31 @@ function RapportsPage() {
     { header: tr("Dépenses"), key: "depenses" },
     { header: tr("Solde"), key: "solde" },
   ];
-  const bilanRows = parMois.map((m) => ({
-    mois: m.mois,
-    recettes: formatMontant(m.Recettes, devise),
-    depenses: formatMontant(m["Dépenses"], devise),
-    solde: formatMontant(m.Solde, devise),
-    __docs: m.docs,
-  }));
+  const bilanRows = [
+    ...parMois.map((m) => ({
+      mois: m.mois,
+      recettes: formatMontant(m.Recettes, devise),
+      depenses: formatMontant(m["Dépenses"], devise),
+      solde: formatMontant(m.Solde, devise),
+      __docs: m.docs,
+    })),
+    {
+      mois: tr("Total"),
+      recettes: formatMontant(
+        parMois.reduce((t, m) => t + m.Recettes, 0),
+        devise,
+      ),
+      depenses: formatMontant(
+        parMois.reduce((t, m) => t + m["Dépenses"], 0),
+        devise,
+      ),
+      solde: formatMontant(
+        parMois.reduce((t, m) => t + m.Solde, 0),
+        devise,
+      ),
+      __docs: [] as string[],
+    },
+  ];
 
   const catColumns = [
     { header: tr("Type"), key: "type" },
@@ -167,19 +185,33 @@ function RapportsPage() {
     { header: tr("Opérations"), key: "nb" },
     { header: tr("Total"), key: "total" },
   ];
-  const catRows = parCategorie.map((c) => ({
-    type: c.type,
-    nom: c.nom,
-    nb: c.nb,
-    total: formatMontant(c.total, devise),
-    __docs: c.docs,
-  }));
+  const catRows = [
+    ...parCategorie.map((c) => ({
+      type: c.type,
+      nom: c.nom,
+      nb: c.nb,
+      total: formatMontant(c.total, devise),
+      __docs: c.docs,
+    })),
+    {
+      type: tr("Total"),
+      nom: "—",
+      nb: parCategorie.reduce((t, c) => t + c.nb, 0),
+      total: formatMontant(
+        parCategorie.reduce((t, c) => t + c.total, 0),
+        devise,
+      ),
+      __docs: [] as string[],
+    },
+  ];
 
-  // Rapport complet : type / catégorie / opérations / recette / dépense / solde
+  const activitesPeriode = activites.filter((a) => inPeriod(a.date));
+
+  // Rapport complet : recettes en haut, dépenses en bas, tiret dans la colonne inverse
   const completLignes = useMemo(() => {
     const map = new Map<
       string,
-      { type: string; nom: string; nb: number; rec: number; dep: number; docs: string[] }
+      { ordre: number; type: string; nom: string; nb: number; rec: number; dep: number; docs: string[] }
     >();
     const add = (
       x: { categorie_id: string | null; montant: number },
@@ -190,6 +222,7 @@ function RapportsPage() {
       const prev =
         map.get(key) ??
         {
+          ordre: type === "recette" ? 0 : 1,
           type: type === "recette" ? tr("Recette") : tr("Dépense"),
           nom: catName(x.categorie_id),
           nb: 0,
@@ -208,7 +241,7 @@ function RapportsPage() {
     r.forEach((x) => add(x, "recette", docsDesOperations([x])));
     d.forEach((x) => add(x, "depense", docsDesOperations([x])));
     return Array.from(map.values()).sort(
-      (a, b) => b.rec + b.dep - (a.rec + a.dep),
+      (a, b) => a.ordre - b.ordre || b.rec + b.dep - (a.rec + a.dep),
     );
   }, [r, d, categories]);
 
@@ -220,26 +253,6 @@ function RapportsPage() {
     { header: tr("Dépenses"), key: "dep" },
     { header: tr("Solde"), key: "solde" },
   ];
-  const completRows = [
-    ...completLignes.map((c) => ({
-      type: c.type,
-      nom: c.nom,
-      nb: c.nb,
-      rec: formatMontant(c.rec, devise),
-      dep: formatMontant(c.dep, devise),
-      solde: formatMontant(c.rec - c.dep, devise),
-      __docs: c.docs,
-    })),
-    {
-      type: tr("Total"),
-      nom: "—",
-      nb: r.length + d.length,
-      rec: formatMontant(totalR, devise),
-      dep: formatMontant(totalD, devise),
-      solde: formatMontant(totalR - totalD, devise),
-      __docs: [] as string[],
-    },
-  ];
 
   const actColumns = [
     { header: tr("Activité"), key: "titre" },
@@ -250,23 +263,70 @@ function RapportsPage() {
     { header: tr("Participants"), key: "participants" },
     { header: tr("Statut"), key: "statut" },
   ];
-  const actRows = activitesPeriode.map((a) => ({
-    titre: a.titre,
-    type: tr(TYPE_ACTIVITE_LABELS[a.type_activite] ?? a.type_activite),
-    date: formatDate(a.date),
-    prevu: formatMontant(a.budget_prevu, devise),
-    depense: formatMontant(
-      depenses.filter((x) => x.activite_id === a.id).reduce((t, x) => t + Number(x.montant), 0),
-      devise,
-    ),
-    participants: a.participants,
-    statut: tr(STATUT_ACTIVITE_LABELS[a.statut] ?? a.statut),
-    __docs: [
+  const actDepense = (id: string) =>
+    depenses.filter((x) => x.activite_id === id).reduce((t, x) => t + Number(x.montant), 0);
+  const actRows = [
+    ...activitesPeriode.map((a) => ({
+      titre: a.titre,
+      type: tr(TYPE_ACTIVITE_LABELS[a.type_activite] ?? a.type_activite),
+      date: formatDate(a.date),
+      prevu: formatMontant(a.budget_prevu, devise),
+      depense: formatMontant(actDepense(a.id), devise),
+      participants: a.participants,
+      statut: tr(STATUT_ACTIVITE_LABELS[a.statut] ?? a.statut),
+      __docs: [
+        ...toPiecesJointes(a.photos),
+        ...toPiecesJointes(a.documents),
+        ...docsDesOperations(depenses.filter((x) => x.activite_id === a.id)),
+      ],
+    })),
+    {
+      titre: tr("Total"),
+      type: "—",
+      date: "—",
+      prevu: formatMontant(
+        activitesPeriode.reduce((t, a) => t + Number(a.budget_prevu), 0),
+        devise,
+      ),
+      depense: formatMontant(
+        activitesPeriode.reduce((t, a) => t + actDepense(a.id), 0),
+        devise,
+      ),
+      participants: activitesPeriode.reduce((t, a) => t + Number(a.participants), 0),
+      statut: "—",
+      __docs: [] as string[],
+    },
+  ];
+
+  // Tous les documents des opérations et activités de la période (annexés au rapport complet).
+  const tousDocsPeriode = [
+    ...docsDesOperations([...r, ...d]),
+    ...activitesPeriode.flatMap((a) => [
       ...toPiecesJointes(a.photos),
       ...toPiecesJointes(a.documents),
-      ...docsDesOperations(depenses.filter((x) => x.activite_id === a.id)),
-    ],
-  }));
+    ]),
+  ];
+
+  const completRows = [
+    ...completLignes.map((c) => ({
+      type: c.type,
+      nom: c.nom,
+      nb: c.nb,
+      rec: c.ordre === 0 ? formatMontant(c.rec, devise) : "—",
+      dep: c.ordre === 1 ? formatMontant(c.dep, devise) : "—",
+      solde: formatMontant(c.rec - c.dep, devise),
+      __docs: c.docs,
+    })),
+    {
+      type: tr("Total"),
+      nom: "—",
+      nb: r.length + d.length,
+      rec: formatMontant(totalR, devise),
+      dep: formatMontant(totalD, devise),
+      solde: formatMontant(totalR - totalD, devise),
+      __docs: tousDocsPeriode,
+    },
+  ];
 
   const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
