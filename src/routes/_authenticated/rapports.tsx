@@ -298,14 +298,6 @@ function RapportsPage() {
     },
   ];
 
-  // Tous les documents des opérations et activités de la période (annexés au rapport complet).
-  const tousDocsPeriode = [
-    ...docsDesOperations([...r, ...d]),
-    ...activitesPeriode.flatMap((a) => [
-      ...toPiecesJointes(a.photos),
-      ...toPiecesJointes(a.documents),
-    ]),
-  ];
 
   const completRows = [
     ...completLignes.map((c) => ({
@@ -324,9 +316,12 @@ function RapportsPage() {
       rec: formatMontant(totalR, devise),
       dep: formatMontant(totalD, devise),
       solde: formatMontant(totalR - totalD, devise),
-      __docs: tousDocsPeriode,
+      // Les justificatifs restent attachés aux lignes d'opérations, jamais au total.
+      __docs: [] as string[],
     },
   ];
+
+  const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
   const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
@@ -583,7 +578,7 @@ function RapportsPage() {
             name={`rapport-complet-${periodeKey}`}
             titre={tr("Rapport complet")}
             titreAr="التقرير الشامل"
-            columns={completColumns}
+            columns={completExportColumns}
             rows={completRows}
           />
           <SimpleTable columns={completColumns} rows={completRows} />
