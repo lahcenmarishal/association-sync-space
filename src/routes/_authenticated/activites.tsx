@@ -124,7 +124,21 @@ function ActivitesPage() {
     [activites, filters],
   );
 
+  const piecesOf = (a: Activite): string[] => [
+    ...toPiecesJointes(a.photos),
+    ...toPiecesJointes(a.documents),
+  ];
+
+  const removeAttachment = async (a: Activite, path: string) => {
+    const photos = toPiecesJointes(a.photos).filter((x) => x !== path);
+    const documents = toPiecesJointes(a.documents).filter((x) => x !== path);
+    await save.mutateAsync({ id: a.id, values: { photos, documents } });
+    deleteDocument(path).catch(() => undefined);
+    setDetail({ ...a, photos, documents });
+  };
+
   const openNew = () => {
+
     setEditing(null);
     setForm({ ...empty, photos: [], documents: [] });
     setFiles([]);
