@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Users, MapPin } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, MapPin, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { FilterBar } from "@/components/FilterBar";
@@ -15,6 +15,7 @@ import {
   resoudreDocuments,
   uploadDocuments,
   deleteDocument,
+  getDocumentUrl,
   toPiecesJointes,
   type Activite,
 } from "@/lib/data";
@@ -123,7 +124,21 @@ function ActivitesPage() {
     [activites, filters],
   );
 
+  const piecesOf = (a: Activite): string[] => [
+    ...toPiecesJointes(a.photos),
+    ...toPiecesJointes(a.documents),
+  ];
+
+  const removeAttachment = async (a: Activite, path: string) => {
+    const photos = toPiecesJointes(a.photos).filter((x) => x !== path);
+    const documents = toPiecesJointes(a.documents).filter((x) => x !== path);
+    await save.mutateAsync({ id: a.id, values: { photos, documents } });
+    deleteDocument(path).catch(() => undefined);
+    setDetail({ ...a, photos, documents });
+  };
+
   const openNew = () => {
+
     setEditing(null);
     setForm({ ...empty, photos: [], documents: [] });
     setFiles([]);
@@ -300,6 +315,17 @@ function ActivitesPage() {
                   </div>
                   <Progress value={pct} className="mt-1" />
                 </div>
+
+                {piecesOf(a).length > 0 && (
+                  <button
+                    className="mt-2 flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+                    onClick={() => setDetail(a)}
+                  >
+                    <Paperclip className="size-3.5" /> {piecesOf(a).length} {t("document(s)")}
+                  </button>
+                )}
+
+
 
                 {canManageActivities && (
                   <div className="mt-4 flex justify-end gap-1">
@@ -524,8 +550,51 @@ function ActivitesPage() {
                     ))
                 )}
               </div>
+              <div className="pt-2">
+                <p className="mb-1 font-medium">{t("Photos / documents")}</p>
+                {piecesOf(detail).length === 0 ? (
+                  <p className="text-muted-foreground">{t("Aucune")}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {piecesOf(detail).map((p) => (
+                      <div
+                        key={p}
+                        className="flex flex-wrap items-center gap-2 rounded-lg border p-2 text-sm"
+                      >
+                        <Paperclip className="size-4 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate">{p.split("/").pop()}</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              window.open(await getDocumentUrl(p), "_blank");
+                            } catch {
+                              toast.error(t("Fichier introuvable"));
+                            }
+                          }}
+                        >
+                          {t("Voir")}
+                        </Button>
+                        {canManageActivities && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeAttachment(detail, p)}
+                          >
+                            <X className="size-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
