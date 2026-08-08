@@ -145,7 +145,7 @@ function RapportsPage() {
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   }, [r, d, categories]);
 
-  const activitesPeriode = activites.filter((a) => inPeriod(a.date));
+
 
   const bilanColumns = [
     { header: tr("Mois"), key: "mois" },
