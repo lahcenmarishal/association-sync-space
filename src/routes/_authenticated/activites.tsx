@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Users, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { FilterBar } from "@/components/FilterBar";
+import { AttachmentsField } from "@/components/AttachmentsField";
 import { useFilters, matchFilters } from "@/hooks/useFilters";
 import {
   useActivites,
@@ -11,9 +12,10 @@ import {
   useSaveRow,
   useDeleteRow,
   useParametres,
-  getDocumentUrl,
   resoudreDocuments,
-  uploadDocument,
+  uploadDocuments,
+  deleteDocument,
+  toPiecesJointes,
   type Activite,
 } from "@/lib/data";
 import { useAuth } from "@/hooks/useAuth";
@@ -79,6 +81,8 @@ const empty = {
   participants: "",
   description: "",
   statut: "prevue",
+  photos: [] as string[],
+  documents: [] as string[],
 };
 
 function ActivitesPage() {
@@ -95,7 +99,7 @@ function ActivitesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Activite | null>(null);
   const [form, setForm] = useState({ ...empty });
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [toDelete, setToDelete] = useState<Activite | null>(null);
   const [detail, setDetail] = useState<Activite | null>(null);
   const [saving, setSaving] = useState(false);
@@ -121,8 +125,8 @@ function ActivitesPage() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ ...empty });
-    setFiles(null);
+    setForm({ ...empty, photos: [], documents: [] });
+    setFiles([]);
     setOpen(true);
   };
 
@@ -133,13 +137,10 @@ function ActivitesPage() {
       return;
     }
     setSaving(true);
-    let photos: string[] = editing?.photos ?? [];
-    if (files && files.length) {
+    let photos: string[] = [...form.photos];
+    if (files.length) {
       try {
-        const uploaded = await Promise.all(
-          Array.from(files).map((f) => uploadDocument(f, "activites")),
-        );
-        photos = [...photos, ...uploaded];
+        photos = [...photos, ...(await uploadDocuments(files, "activites"))];
       } catch {
         toast.error(t("Envoi des fichiers impossible"));
         setSaving(false);
@@ -160,9 +161,11 @@ function ActivitesPage() {
         description: form.description.trim().slice(0, 2000) || null,
         statut: form.statut,
         photos,
+        documents: form.documents,
       },
     });
     setSaving(false);
+    setFiles([]);
     setOpen(false);
   };
 
@@ -316,8 +319,10 @@ function ActivitesPage() {
                           participants: String(a.participants),
                           description: a.description ?? "",
                           statut: a.statut,
+                          photos: toPiecesJointes(a.photos),
+                          documents: toPiecesJointes(a.documents),
                         });
-                        setFiles(null);
+                        setFiles([]);
                         setOpen(true);
                       }}
                     >
@@ -444,10 +449,20 @@ function ActivitesPage() {
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </div>
-            <div>
-              <Label>{t("Photos / documents")}</Label>
-              <Input type="file" multiple onChange={(e) => setFiles(e.target.files)} />
-            </div>
+            <AttachmentsField
+              label="Photos / documents"
+              paths={[...form.photos, ...form.documents]}
+              onRemovePath={(p) => {
+                setForm({
+                  ...form,
+                  photos: form.photos.filter((x) => x !== p),
+                  documents: form.documents.filter((x) => x !== p),
+                });
+                deleteDocument(p).catch(() => undefined);
+              }}
+              files={files}
+              setFiles={setFiles}
+            />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t("Annuler")}
