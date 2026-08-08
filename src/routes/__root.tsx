@@ -81,14 +81,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Association EDDAHAB — Eau potable" },
+      { title: "Association Eddahab — Eau potable, développement et coopération" },
       {
         name: "description",
         content:
-          "Plateforme de gestion financière et des activités de l'association EDDAHAB de distribution d'eau potable : cotisations, dépenses, caisse, rapports.",
+          "Association Eddahab pour l'eau potable, le développement et la coopération : gestion des abonnés, du réseau de distribution, de la caisse quotidienne, des travailleurs et des activités.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Association Eddahab — Eau potable, développement et coopération" },
+      { name: "twitter:title", content: "Association Eddahab — Eau potable, développement et coopération" },
+      { property: "og:description", content: "Association Eddahab pour l'eau potable, le développement et la coopération : gestion des abonnés, du réseau de distribution, de la caisse quotidienne, des travailleurs et des activités." },
+      { name: "twitter:description", content: "Association Eddahab pour l'eau potable, le développement et la coopération : gestion des abonnés, du réseau de distribution, de la caisse quotidienne, des travailleurs et des activités." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2bc698108255cf4a2858183cb5672ac6/id-preview-8c4eea8b--86c12d3d-61d6-49ed-8489-fe4d1271039c.lovable.app-1786202545923.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2bc698108255cf4a2858183cb5672ac6/id-preview-8c4eea8b--86c12d3d-61d6-49ed-8489-fe4d1271039c.lovable.app-1786202545923.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

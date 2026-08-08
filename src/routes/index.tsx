@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Cotisations des abonnés, entretien du réseau, caisse quotidienne, salaires et rapports détaillés en arabe.",
+          "Association Eddahab pour l'eau potable, le développement et la coopération : gestion des abonnés, du réseau de distribution, de la caisse quotidienne, des travailleurs et des activités.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
