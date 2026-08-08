@@ -324,9 +324,12 @@ function RapportsPage() {
       rec: formatMontant(totalR, devise),
       dep: formatMontant(totalD, devise),
       solde: formatMontant(totalR - totalD, devise),
-      __docs: tousDocsPeriode,
+      // Les justificatifs restent attachés aux lignes d'opérations, jamais au total.
+      __docs: [] as string[],
     },
   ];
+
+  const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
   const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
