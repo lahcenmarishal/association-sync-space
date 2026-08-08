@@ -586,7 +586,7 @@ function RapportsPage() {
             name={`rapport-complet-${periodeKey}`}
             titre={tr("Rapport complet")}
             titreAr="التقرير الشامل"
-            columns={completColumns}
+            columns={completExportColumns}
             rows={completRows}
           />
           <SimpleTable columns={completColumns} rows={completRows} />
