@@ -286,6 +286,7 @@ function TravailleursPage() {
         <p className="ml-auto self-center text-xs text-muted-foreground">
           {t("Les permanents sont payés automatiquement le 27 de chaque mois, avec déduction du solde.")}
         </p>
+
       </div>
 
       <div className="surface overflow-x-auto">
