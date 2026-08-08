@@ -3,7 +3,12 @@ import { fr } from "date-fns/locale";
 
 export function formatMontant(value: number | string | null | undefined, devise = "DH") {
   const n = Number(value ?? 0);
-  return `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${devise}`;
+  const abs = Math.abs(n).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  // Isolation LTR : le signe "-" reste à gauche du nombre et la devise à droite, même en RTL.
+  return `\u2066${n < 0 ? "-" : ""}${abs} ${devise}\u2069`;
 }
 
 export function formatDate(value: string | Date | null | undefined, pattern = "dd/MM/yyyy") {
