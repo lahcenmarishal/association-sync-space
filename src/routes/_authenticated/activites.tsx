@@ -524,8 +524,51 @@ function ActivitesPage() {
                     ))
                 )}
               </div>
+              <div className="pt-2">
+                <p className="mb-1 font-medium">{t("Photos / documents")}</p>
+                {piecesOf(detail).length === 0 ? (
+                  <p className="text-muted-foreground">{t("Aucune")}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {piecesOf(detail).map((p) => (
+                      <div
+                        key={p}
+                        className="flex flex-wrap items-center gap-2 rounded-lg border p-2 text-sm"
+                      >
+                        <Paperclip className="size-4 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate">{p.split("/").pop()}</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              window.open(await getDocumentUrl(p), "_blank");
+                            } catch {
+                              toast.error(t("Fichier introuvable"));
+                            }
+                          }}
+                        >
+                          {t("Voir")}
+                        </Button>
+                        {canManageActivities && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeAttachment(detail, p)}
+                          >
+                            <X className="size-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
