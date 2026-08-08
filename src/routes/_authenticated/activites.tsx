@@ -15,6 +15,7 @@ import {
   resoudreDocuments,
   uploadDocuments,
   deleteDocument,
+  getDocumentUrl,
   toPiecesJointes,
   type Activite,
 } from "@/lib/data";
