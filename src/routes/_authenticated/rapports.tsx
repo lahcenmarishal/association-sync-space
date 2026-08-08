@@ -298,14 +298,6 @@ function RapportsPage() {
     },
   ];
 
-  // Tous les documents des opérations et activités de la période (annexés au rapport complet).
-  const tousDocsPeriode = [
-    ...docsDesOperations([...r, ...d]),
-    ...activitesPeriode.flatMap((a) => [
-      ...toPiecesJointes(a.photos),
-      ...toPiecesJointes(a.documents),
-    ]),
-  ];
 
   const completRows = [
     ...completLignes.map((c) => ({
