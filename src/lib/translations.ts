@@ -31,6 +31,9 @@ export const AR: Record<string, string> = {
   Administrateur: "مدير",
   "Trésorier": "أمين المال",
   "Secrétaire": "كاتب(ة)",
+  Membre: "عضو",
+  "Lecture seule : consultation des données sans aucune modification":
+    "قراءة فقط: الاطلاع على المعطيات دون أي تعديل",
   "Accès complet à toutes les fonctionnalités du système":
     "دخول كامل إلى جميع وظائف النظام",
   "Recettes, dépenses, caisse quotidienne, tableau de bord financier et export des rapports":
