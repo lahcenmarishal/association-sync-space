@@ -316,6 +316,17 @@ function ActivitesPage() {
                   <Progress value={pct} className="mt-1" />
                 </div>
 
+                {piecesOf(a).length > 0 && (
+                  <button
+                    className="mt-2 flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+                    onClick={() => setDetail(a)}
+                  >
+                    <Paperclip className="size-3.5" /> {piecesOf(a).length} {t("document(s)")}
+                  </button>
+                )}
+
+
+
                 {canManageActivities && (
                   <div className="mt-4 flex justify-end gap-1">
                     <Button
