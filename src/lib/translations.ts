@@ -347,6 +347,7 @@ export const AR: Record<string, string> = {
   "Par catégorie": "حسب الفئة",
   "Aucune donnée sur la période.": "لا توجد معطيات في هذه الفترة.",
   "Opérations": "العمليات",
+  "Rapport complet": "التقرير الشامل",
   "Activité": "النشاط",
   Recette: "مدخول",
   "Dépense": "مصروف",

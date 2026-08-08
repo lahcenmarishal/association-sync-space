@@ -515,6 +515,7 @@ export type Database = {
     }
     Functions: {
       generer_salaires_permanents: { Args: never; Returns: number }
+      generer_salaires_permanents_auto: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
