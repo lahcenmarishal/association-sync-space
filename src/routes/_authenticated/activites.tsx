@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Users, MapPin } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, MapPin, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { FilterBar } from "@/components/FilterBar";
