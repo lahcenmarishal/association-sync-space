@@ -175,6 +175,72 @@ function RapportsPage() {
     __docs: c.docs,
   }));
 
+  // Rapport complet : type / catégorie / opérations / recette / dépense / solde
+  const completLignes = useMemo(() => {
+    const map = new Map<
+      string,
+      { type: string; nom: string; nb: number; rec: number; dep: number; docs: string[] }
+    >();
+    const add = (
+      x: { categorie_id: string | null; montant: number },
+      type: "recette" | "depense",
+      docs: string[],
+    ) => {
+      const key = `${type}-${x.categorie_id}`;
+      const prev =
+        map.get(key) ??
+        {
+          type: type === "recette" ? tr("Recette") : tr("Dépense"),
+          nom: catName(x.categorie_id),
+          nb: 0,
+          rec: 0,
+          dep: 0,
+          docs: [] as string[],
+        };
+      map.set(key, {
+        ...prev,
+        nb: prev.nb + 1,
+        rec: prev.rec + (type === "recette" ? Number(x.montant) : 0),
+        dep: prev.dep + (type === "depense" ? Number(x.montant) : 0),
+        docs: [...prev.docs, ...docs],
+      });
+    };
+    r.forEach((x) => add(x, "recette", docsDesOperations([x])));
+    d.forEach((x) => add(x, "depense", docsDesOperations([x])));
+    return Array.from(map.values()).sort(
+      (a, b) => b.rec + b.dep - (a.rec + a.dep),
+    );
+  }, [r, d, categories]);
+
+  const completColumns = [
+    { header: tr("Type"), key: "type" },
+    { header: tr("Catégorie"), key: "nom" },
+    { header: tr("Opérations"), key: "nb" },
+    { header: tr("Recettes"), key: "rec" },
+    { header: tr("Dépenses"), key: "dep" },
+    { header: tr("Solde"), key: "solde" },
+  ];
+  const completRows = [
+    ...completLignes.map((c) => ({
+      type: c.type,
+      nom: c.nom,
+      nb: c.nb,
+      rec: formatMontant(c.rec, devise),
+      dep: formatMontant(c.dep, devise),
+      solde: formatMontant(c.rec - c.dep, devise),
+      __docs: c.docs,
+    })),
+    {
+      type: tr("Total"),
+      nom: "—",
+      nb: r.length + d.length,
+      rec: formatMontant(totalR, devise),
+      dep: formatMontant(totalD, devise),
+      solde: formatMontant(totalR - totalD, devise),
+      __docs: [] as string[],
+    },
+  ];
+
   const actColumns = [
     { header: tr("Activité"), key: "titre" },
     { header: tr("Type"), key: "type" },
