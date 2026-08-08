@@ -92,14 +92,14 @@ export const AR: Record<string, string> = {
     "دخول متحكم فيه حسب دور كل عضو.",
 
   // Accueil — Association Eddahab
-  "Association Eddahab": "جمعية الذهب",
+  "Association Eddahab": "جمعية الذهاب",
   "Eau potable · Développement · Coopération": "الماء الصالح للشرب · التنمية · التعاون",
-  "Logo de l'Association Eddahab pour l'eau potable": "شعار جمعية الذهب للماء الصالح للشرب",
-  "Sceau officiel de l'Association Eddahab": "الخاتم الرسمي لجمعية الذهب",
+  "Logo de l'Association Eddahab pour l'eau potable": "شعار جمعية الذهاب للماء الصالح للشرب",
+  "Sceau officiel de l'Association Eddahab": "الخاتم الرسمي لجمعية الذهاب",
   "L'eau potable, le développement et la coopération au service des habitants.":
     "الماء الصالح للشرب والتنمية والتعاون في خدمة الساكنة.",
   "L'Association Eddahab gère la distribution de l'eau potable à travers les réseaux, l'entretien des installations, les cotisations des abonnés, la caisse quotidienne, les travailleurs et les activités de développement.":
-    "تسهر جمعية الذهب على توزيع الماء الصالح للشرب عبر الشبكات، وصيانة التجهيزات، وواجبات المشتركين، والصندوق اليومي، والعاملين، وأنشطة التنمية.",
+    "تسهر جمعية الذهاب على توزيع الماء الصالح للشرب عبر الشبكات، وصيانة التجهيزات، وواجبات المشتركين، والصندوق اليومي، والعاملين، وأنشطة التنمية.",
   "Eau potable pour tous": "الماء الصالح للشرب للجميع",
   "Distribution de l'eau potable à travers les réseaux et suivi des abonnés.":
     "توزيع الماء الصالح للشرب عبر الشبكات وتتبع المشتركين.",

@@ -248,7 +248,7 @@ function RapportsPage() {
             titre: titreAr,
             sousTitre: periodeLabel,
             association:
-              params?.nom_association ?? "جمعية الذهب للماء الصالح للشرب والتنمية والتعاون",
+              params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
             resume: [
               ["مجموع المداخيل", formatMontant(totalR, devise)],
               ["مجموع المصاريف", formatMontant(totalD, devise)],
