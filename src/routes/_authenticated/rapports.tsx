@@ -510,12 +510,25 @@ function RapportsPage() {
 
 
 
-      <Tabs defaultValue="bilan">
+      <Tabs defaultValue="complet">
         <TabsList className="mb-4">
+          <TabsTrigger value="complet">{tr("Rapport complet")}</TabsTrigger>
           <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
           <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
           <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="complet">
+          <ExportButtons
+            name={`rapport-complet-${periodeKey}`}
+            titre={tr("Rapport complet")}
+            titreAr="التقرير الشامل"
+            columns={completColumns}
+            rows={completRows}
+          />
+          <SimpleTable columns={completColumns} rows={completRows} />
+        </TabsContent>
+
 
         <TabsContent value="bilan">
           <ExportButtons
