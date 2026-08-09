@@ -93,24 +93,24 @@ function Landing() {
   const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-5">
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen overflow-x-hidden bg-background">
+      <header className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5">
+        <div className="flex min-w-0 items-center gap-3">
           <img
             src={logoEddahab}
             alt={t("Logo de l'Association Eddahab pour l'eau potable")}
-            className="size-12 shrink-0 object-contain"
+            className="size-10 shrink-0 object-contain sm:size-12"
             width={48}
             height={48}
           />
-          <span className="font-display text-sm font-semibold leading-tight sm:text-base">
+          <span className="min-w-0 font-display text-sm font-semibold leading-tight sm:text-base">
             {t("Association Eddahab")}
             <span className="block text-xs font-normal text-muted-foreground">
               {t("Eau potable · Développement · Coopération")}
             </span>
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <LanguageSwitcher />
           <Button asChild>
             <Link to={session ? "/dashboard" : "/auth"}>
@@ -120,20 +120,21 @@ function Landing() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 pb-20">
-        <section className="grid items-center gap-10 py-14 md:grid-cols-[1.4fr_1fr] md:py-20">
-          <div>
-            <p className="mb-4 inline-flex rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
+      <main className="mx-auto max-w-6xl px-4 pb-16 sm:px-5 sm:pb-20">
+        <section className="grid items-center gap-10 py-10 md:grid-cols-[1.4fr_1fr] md:py-20">
+          <div className="min-w-0">
+            <p className="mb-4 inline-block max-w-full rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
               {t("جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون")}
             </p>
-            <h1 className="max-w-3xl font-display text-4xl font-semibold leading-tight md:text-5xl">
+            <h1 className="max-w-full break-words font-display text-2xl font-semibold leading-tight sm:text-4xl md:text-5xl">
               {t("L'eau potable, le développement et la coopération au service des habitants.")}
             </h1>
-            <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
+            <p className="mt-5 max-w-2xl break-words text-sm text-muted-foreground sm:text-base md:text-lg">
               {t(
                 "L'Association Eddahab gère la distribution de l'eau potable à travers les réseaux, l'entretien des installations, les cotisations des abonnés, la caisse quotidienne, les travailleurs et les activités de développement.",
               )}
             </p>
+
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" asChild>
                 <Link to={session ? "/dashboard" : "/auth"}>
