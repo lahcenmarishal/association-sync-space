@@ -427,8 +427,8 @@ function RapportsPage() {
 
   return (
     <AppShell title="Rapports" description="Bilans financiers et rapports d'activités">
-      <div className="surface mb-4 flex flex-wrap items-end gap-3 p-4">
-        <div className="w-32">
+      <div className="surface mb-4 grid gap-3 p-4 sm:flex sm:flex-wrap sm:items-end">
+        <div className="min-w-0 sm:w-32">
           <Label className="mb-1 text-xs">{tr("Année")}</Label>
           <Select value={annee} onValueChange={setAnnee}>
             <SelectTrigger>
@@ -443,7 +443,7 @@ function RapportsPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-36">
+        <div className="min-w-0 sm:w-36">
           <Label className="mb-1 text-xs">{tr("Mois")}</Label>
           <Select value={mois} onValueChange={setMois}>
             <SelectTrigger>
@@ -459,35 +459,41 @@ function RapportsPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="ml-auto grid grid-cols-3 gap-6 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground">{tr("Recettes")}</p>
-            <p className="font-semibold text-success">{formatMontant(totalR, devise)}</p>
+        <div className="grid min-w-0 grid-cols-3 gap-3 text-sm sm:ms-auto sm:gap-6">
+          <div className="min-w-0">
+            <p className="truncate text-xs text-muted-foreground">{tr("Recettes")}</p>
+            <p className="truncate font-semibold text-success">{formatMontant(totalR, devise)}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{tr("Dépenses")}</p>
-            <p className="font-semibold text-destructive">{formatMontant(totalD, devise)}</p>
+          <div className="min-w-0">
+            <p className="truncate text-xs text-muted-foreground">{tr("Dépenses")}</p>
+            <p className="truncate font-semibold text-destructive">{formatMontant(totalD, devise)}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{tr("Solde")}</p>
-            <p className="font-semibold text-primary">{formatMontant(totalR - totalD, devise)}</p>
+          <div className="min-w-0">
+            <p className="truncate text-xs text-muted-foreground">{tr("Solde")}</p>
+            <p className="truncate font-semibold text-primary">
+              {formatMontant(totalR - totalD, devise)}
+            </p>
           </div>
         </div>
       </div>
 
+
       <div className="surface mb-4 p-4">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Paperclip className="size-4 text-muted-foreground" />
-          <h2 className="font-semibold">
-            {tr("Documents du rapport")} — {periodeLabel}
-          </h2>
+        <div className="mb-3 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <div className="flex min-w-0 items-center gap-2">
+            <Paperclip className="size-4 shrink-0 text-muted-foreground" />
+            <h2 className="min-w-0 truncate font-semibold">
+              {tr("Documents du rapport")} — {periodeLabel}
+            </h2>
+          </div>
           {canManageFinance && (
-            <div className="ms-auto flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2 sm:ms-auto">
               <Input
                 type="file"
                 multiple
-                className="w-auto"
+                className="min-w-0 flex-1 text-xs sm:w-auto sm:flex-none sm:text-sm"
                 disabled={uploading}
+
                 onChange={async (e) => {
                   const files = Array.from(e.target.files ?? []);
                   e.target.value = "";
@@ -566,12 +572,15 @@ function RapportsPage() {
 
 
       <Tabs defaultValue="complet">
-        <TabsList className="mb-4">
-          <TabsTrigger value="complet">{tr("Rapport complet")}</TabsTrigger>
-          <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
-          <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
-          <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 mb-4 overflow-x-auto px-1">
+          <TabsList className="w-max">
+            <TabsTrigger value="complet">{tr("Rapport complet")}</TabsTrigger>
+            <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
+            <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
+            <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
+          </TabsList>
+        </div>
+
 
         <TabsContent value="complet">
           <ExportButtons
