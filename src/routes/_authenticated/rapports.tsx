@@ -479,18 +479,21 @@ function RapportsPage() {
 
 
       <div className="surface mb-4 p-4">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Paperclip className="size-4 text-muted-foreground" />
-          <h2 className="font-semibold">
-            {tr("Documents du rapport")} — {periodeLabel}
-          </h2>
+        <div className="mb-3 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <div className="flex min-w-0 items-center gap-2">
+            <Paperclip className="size-4 shrink-0 text-muted-foreground" />
+            <h2 className="min-w-0 truncate font-semibold">
+              {tr("Documents du rapport")} — {periodeLabel}
+            </h2>
+          </div>
           {canManageFinance && (
-            <div className="ms-auto flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2 sm:ms-auto">
               <Input
                 type="file"
                 multiple
-                className="w-auto"
+                className="min-w-0 flex-1 text-xs sm:w-auto sm:flex-none sm:text-sm"
                 disabled={uploading}
+
                 onChange={async (e) => {
                   const files = Array.from(e.target.files ?? []);
                   e.target.value = "";
