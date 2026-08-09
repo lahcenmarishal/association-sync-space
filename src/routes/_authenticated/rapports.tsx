@@ -572,12 +572,15 @@ function RapportsPage() {
 
 
       <Tabs defaultValue="complet">
-        <TabsList className="mb-4">
-          <TabsTrigger value="complet">{tr("Rapport complet")}</TabsTrigger>
-          <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
-          <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
-          <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 mb-4 overflow-x-auto px-1">
+          <TabsList className="w-max">
+            <TabsTrigger value="complet">{tr("Rapport complet")}</TabsTrigger>
+            <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
+            <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
+            <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
+          </TabsList>
+        </div>
+
 
         <TabsContent value="complet">
           <ExportButtons
