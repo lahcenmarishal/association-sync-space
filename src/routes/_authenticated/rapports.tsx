@@ -33,7 +33,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { ouvrirRapportWeb } from "@/lib/report-web";
-import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS } from "@/lib/constants";
+import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS, MOYENS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
