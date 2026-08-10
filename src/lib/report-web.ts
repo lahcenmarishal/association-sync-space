@@ -79,8 +79,8 @@ const CSS = `
   tr:nth-child(even) td { background: #f2f7f6; }
   tr.recette td { background: #eaf6e6; }
   tr.recette:nth-child(even) td { background: #e0f0da; }
-  tr.depense td { background: #fbe4e6; }
-  tr.depense:nth-child(even) td { background: #f7d7da; }
+  tr.depense td { background: #fff3f4; }
+  tr.depense:nth-child(even) td { background: #ffebed; }
   tr.total td { background: #123a3a; color: #fff; font-weight: 700; }
   td.docs { min-width: 190px; }
   .doc { display: inline-flex; align-items: center; gap: 6px; margin: 3px; text-decoration: none; color: #0e7c7b; }
