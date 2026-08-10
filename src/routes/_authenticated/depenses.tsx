@@ -85,6 +85,7 @@ const empty = {
   fournisseur: "",
   montant: "",
   moyen_paiement: "especes",
+  numero_cheque: "",
   description: "",
   caisse_id: "none",
   activite_id: "none",
@@ -124,7 +125,7 @@ function DepensesPage() {
             date: d.date,
             montant: Number(d.montant),
             categorie_id: d.categorie_id,
-            texte: `${d.numero} ${d.fournisseur} ${d.description ?? ""} ${catName(d.categorie_id)}`,
+            texte: `${d.numero_cheque} ${d.fournisseur} ${d.description ?? ""} ${catName(d.categorie_id)}`,
             extra: d.moyen_paiement,
           },
           filters,
@@ -151,6 +152,7 @@ function DepensesPage() {
       fournisseur: d.fournisseur,
       montant: String(d.montant),
       moyen_paiement: d.moyen_paiement,
+      numero_cheque: d.numero_cheque ?? "",
       description: d.description ?? "",
       caisse_id: d.caisse_id ?? "none",
       activite_id: d.activite_id ?? "none",
@@ -192,6 +194,7 @@ function DepensesPage() {
         fournisseur: form.fournisseur.trim().slice(0, 200),
         montant,
         moyen_paiement: form.moyen_paiement,
+        numero_cheque: form.numero_cheque.trim().slice(0, 60),
         description: form.description.trim().slice(0, 1000) || null,
         caisse_id: form.caisse_id === "none" ? null : form.caisse_id,
         activite_id: form.activite_id === "none" ? null : form.activite_id,
@@ -211,15 +214,16 @@ function DepensesPage() {
         );
         lignes.push({
           cellules: [
-            String(d.numero),
             formatDate(d.date),
             catName(d.categorie_id),
             d.fournisseur,
+            d.numero_cheque || "—",
             formatMontant(d.montant, devise),
             t(MOYENS_LABELS[d.moyen_paiement] ?? d.moyen_paiement),
             d.description ?? "—",
           ],
           documents,
+          variante: "depense" as const,
         });
       }
       ouvrirRapportWeb({
@@ -231,7 +235,7 @@ function DepensesPage() {
           ["مجموع المصاريف", formatMontant(total, devise)],
           ["عدد الوثائق المرفقة", String(lignes.reduce((s, l) => s + l.documents.length, 0))],
         ],
-        entetes: ["الرقم", "التاريخ", "الصنف", "المستفيد", "المبلغ", "طريقة الأداء", "البيان"],
+        entetes: ["التاريخ", "الصنف", "المستفيد", "رقم الشيك", "المبلغ", "طريقة الأداء", "البيان"],
         lignes,
       });
       toast.success(t("Rapport généré"), { id: toastId });
@@ -253,7 +257,7 @@ function DepensesPage() {
         filters={filters}
         set={set}
         reset={reset}
-        searchPlaceholder="Bénéficiaire, description, numéro…"
+        searchPlaceholder="Bénéficiaire, description, n° chèque…"
         categories={catsDepense}
         extra={{
           label: "Moyen de paiement",
@@ -266,10 +270,10 @@ function DepensesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N°</TableHead>
               <TableHead>{t("Date")}</TableHead>
               <TableHead>{t("Catégorie")}</TableHead>
               <TableHead>{t("Bénéficiaire")}</TableHead>
+              <TableHead>{t("N° chèque")}</TableHead>
               <TableHead className="text-right">{t("Montant")}</TableHead>
               <TableHead>{t("Paiement")}</TableHead>
               <TableHead>{t("Justificatif")}</TableHead>
@@ -293,10 +297,12 @@ function DepensesPage() {
             )}
             {slice.map((d) => (
               <TableRow key={d.id}>
-                <TableCell className="font-medium">{d.numero}</TableCell>
                 <TableCell>{formatDate(d.date)}</TableCell>
                 <TableCell>{catName(d.categorie_id)}</TableCell>
                 <TableCell className="max-w-[220px] truncate">{d.fournisseur}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {d.numero_cheque || <span className="text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell className="text-right font-medium text-destructive">
                   {formatMontant(d.montant, devise)}
                 </TableCell>
@@ -451,6 +457,14 @@ function DepensesPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div>
+              <Label>{t("N° chèque")}</Label>
+              <Input
+                value={form.numero_cheque}
+                maxLength={60}
+                onChange={(e) => setForm({ ...form, numero_cheque: e.target.value })}
+              />
             </div>
             <div>
               <Label>{t("Caisse quotidienne")}</Label>

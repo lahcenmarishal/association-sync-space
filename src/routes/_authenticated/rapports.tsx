@@ -33,7 +33,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { ouvrirRapportWeb } from "@/lib/report-web";
-import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS } from "@/lib/constants";
+import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS, MOYENS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -207,52 +207,53 @@ function RapportsPage() {
 
   const activitesPeriode = activites.filter((a) => inPeriod(a.date));
 
-  // Rapport complet : recettes en haut, dépenses en bas, tiret dans la colonne inverse
+  // Rapport complet détaillé : une ligne par opération, recettes en haut, dépenses en bas.
   const completLignes = useMemo(() => {
-    const map = new Map<
-      string,
-      { ordre: number; type: string; nom: string; nb: number; rec: number; dep: number; docs: string[] }
-    >();
-    const add = (
-      x: { categorie_id: string | null; montant: number },
-      type: "recette" | "depense",
-      docs: string[],
-    ) => {
-      const key = `${type}-${x.categorie_id}`;
-      const prev =
-        map.get(key) ??
-        {
-          ordre: type === "recette" ? 0 : 1,
-          type: type === "recette" ? tr("Recette") : tr("Dépense"),
-          nom: catName(x.categorie_id),
-          nb: 0,
-          rec: 0,
-          dep: 0,
-          docs: [] as string[],
-        };
-      map.set(key, {
-        ...prev,
-        nb: prev.nb + 1,
-        rec: prev.rec + (type === "recette" ? Number(x.montant) : 0),
-        dep: prev.dep + (type === "depense" ? Number(x.montant) : 0),
-        docs: [...prev.docs, ...docs],
-      });
-    };
-    r.forEach((x) => add(x, "recette", docsDesOperations([x])));
-    d.forEach((x) => add(x, "depense", docsDesOperations([x])));
-    return Array.from(map.values()).sort(
-      (a, b) => a.ordre - b.ordre || b.rec + b.dep - (a.rec + a.dep),
-    );
+    const recLignes = [...r]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((x) => ({
+        ordre: 0,
+        type: tr("Recette"),
+        date: formatDate(x.date),
+        nom: catName(x.categorie_id),
+        tiers: x.source || "—",
+        piece: x.numero_facture || "—",
+        paiement: tr(MOYENS_LABELS[x.moyen_paiement] ?? x.moyen_paiement),
+        description: x.description || "—",
+        rec: Number(x.montant),
+        dep: 0,
+        docs: docsDesOperations([x]),
+      }));
+    const depLignes = [...d]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((x) => ({
+        ordre: 1,
+        type: tr("Dépense"),
+        date: formatDate(x.date),
+        nom: catName(x.categorie_id),
+        tiers: x.fournisseur || "—",
+        piece: x.numero_cheque || "—",
+        paiement: tr(MOYENS_LABELS[x.moyen_paiement] ?? x.moyen_paiement),
+        description: x.description || "—",
+        rec: 0,
+        dep: Number(x.montant),
+        docs: docsDesOperations([x]),
+      }));
+    return [...recLignes, ...depLignes];
   }, [r, d, categories]);
 
   const completColumns = [
     { header: tr("Type"), key: "type" },
+    { header: tr("Date"), key: "date" },
     { header: tr("Catégorie"), key: "nom" },
-    { header: tr("Opérations"), key: "nb" },
+    { header: tr("Bénéficiaire / Source"), key: "tiers" },
+    { header: tr("N° facture / chèque"), key: "piece" },
+    { header: tr("Paiement"), key: "paiement" },
     { header: tr("Recettes"), key: "rec" },
     { header: tr("Dépenses"), key: "dep" },
     { header: tr("Solde"), key: "solde" },
   ];
+
 
   const actColumns = [
     { header: tr("Activité"), key: "titre" },
@@ -302,8 +303,11 @@ function RapportsPage() {
   const completRows = [
     ...completLignes.map((c) => ({
       type: c.type,
+      date: c.date,
       nom: c.nom,
-      nb: c.nb,
+      tiers: c.tiers,
+      piece: c.piece,
+      paiement: c.paiement,
       rec: c.ordre === 0 ? formatMontant(c.rec, devise) : "—",
       dep: c.ordre === 1 ? formatMontant(c.dep, devise) : "—",
       solde: formatMontant(c.rec - c.dep, devise),
@@ -311,8 +315,11 @@ function RapportsPage() {
     })),
     {
       type: tr("Total"),
+      date: `${r.length + d.length} ${tr("opération(s)")}`,
       nom: "—",
-      nb: r.length + d.length,
+      tiers: "—",
+      piece: "—",
+      paiement: "—",
       rec: formatMontant(totalR, devise),
       dep: formatMontant(totalD, devise),
       solde: formatMontant(totalR - totalD, devise),
@@ -320,6 +327,7 @@ function RapportsPage() {
       __docs: [] as string[],
     },
   ];
+
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
@@ -356,12 +364,22 @@ function RapportsPage() {
           });
 
           const lignes = [];
-          for (const row of rows) {
+          for (const [i, row] of rows.entries()) {
+            const estTotal = i === rows.length - 1 && row["type"] === tr("Total");
+            const variante = estTotal
+              ? ("total" as const)
+              : row["type"] === tr("Recette")
+                ? ("recette" as const)
+                : row["type"] === tr("Dépense")
+                  ? ("depense" as const)
+                  : null;
             lignes.push({
               cellules: columns.map((c) => String(row[c.key] ?? "—")),
               documents: await resoudre((row["__docs"] as string[] | undefined) ?? []),
+              ...(variante ? { variante } : {}),
             });
           }
+
           const nbDocs =
             lignes.reduce((s, l) => s + l.documents.length, 0) + documentsRapport.length;
 
