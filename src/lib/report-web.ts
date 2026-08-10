@@ -180,10 +180,12 @@ function corpsHtml(rapport: RapportWeb, avecBarre: boolean, avecDocuments = true
       : ""
   }
   <div class="resume">${resume}</div>
+  <div class="tableau">
   <table>
     <thead><tr>${entetes.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>
     <tbody>${lignes || `<tr><td colspan="${entetes.length}">لا توجد بيانات</td></tr>`}</tbody>
   </table>
+  </div>
   ${avecDocuments ? indexLiensHtml(rapport) : ""}
   <footer>
     <div>التاريخ : ${new Date().toLocaleDateString("ar-MA")}</div>
