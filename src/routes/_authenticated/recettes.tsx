@@ -83,6 +83,7 @@ const empty = {
   source: "",
   montant: "",
   moyen_paiement: "especes",
+  numero_facture: "",
   description: "",
   piece_jointe: "" as string | null,
   pieces_jointes: [] as string[],
@@ -118,7 +119,7 @@ function RecettesPage() {
             date: r.date,
             montant: Number(r.montant),
             categorie_id: r.categorie_id,
-            texte: `${r.numero} ${r.source} ${r.description ?? ""} ${catName(r.categorie_id)}`,
+            texte: `${r.numero_facture} ${r.source} ${r.description ?? ""} ${catName(r.categorie_id)}`,
             extra: r.moyen_paiement,
           },
           filters,
@@ -145,6 +146,7 @@ function RecettesPage() {
       source: r.source,
       montant: String(r.montant),
       moyen_paiement: r.moyen_paiement,
+      numero_facture: r.numero_facture ?? "",
       description: r.description ?? "",
       piece_jointe: r.piece_jointe,
       pieces_jointes: toPiecesJointes(r.pieces_jointes ?? r.piece_jointe),
@@ -184,6 +186,7 @@ function RecettesPage() {
         source: form.source.trim().slice(0, 200),
         montant,
         moyen_paiement: form.moyen_paiement,
+        numero_facture: form.numero_facture.trim().slice(0, 60),
         description: form.description.trim().slice(0, 1000) || null,
         piece_jointe: pieces[0] ?? null,
         pieces_jointes: pieces,
@@ -201,10 +204,10 @@ function RecettesPage() {
         );
         lignes.push({
           cellules: [
-            String(r.numero),
             formatDate(r.date),
             catName(r.categorie_id),
             r.source,
+            r.numero_facture || "—",
             formatMontant(r.montant, devise),
             t(MOYENS_LABELS[r.moyen_paiement] ?? r.moyen_paiement),
             r.description ?? "—",
@@ -221,7 +224,7 @@ function RecettesPage() {
           ["مجموع المداخيل", formatMontant(total, devise)],
           ["عدد الوثائق المرفقة", String(lignes.reduce((s, l) => s + l.documents.length, 0))],
         ],
-        entetes: ["الرقم", "التاريخ", "الصنف", "المصدر", "المبلغ", "طريقة الأداء", "البيان"],
+        entetes: ["التاريخ", "الصنف", "المصدر", "رقم الفاتورة", "المبلغ", "طريقة الأداء", "البيان"],
         lignes,
       });
       toast.success(t("Rapport généré"), { id: toastId });
@@ -243,7 +246,7 @@ function RecettesPage() {
         filters={filters}
         set={set}
         reset={reset}
-        searchPlaceholder="Source, description, numéro…"
+        searchPlaceholder="Source, description, n° facture…"
         categories={catsRecette}
         extra={{
           label: "Moyen de paiement",
@@ -256,10 +259,10 @@ function RecettesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N°</TableHead>
               <TableHead>{t("Date")}</TableHead>
               <TableHead>{t("Catégorie")}</TableHead>
               <TableHead>{t("Source")}</TableHead>
+              <TableHead>{t("N° facture")}</TableHead>
               <TableHead className="text-right">{t("Montant")}</TableHead>
               <TableHead>{t("Paiement")}</TableHead>
               <TableHead>{t("Pièce")}</TableHead>
@@ -283,10 +286,12 @@ function RecettesPage() {
             )}
             {slice.map((r) => (
               <TableRow key={r.id}>
-                <TableCell className="font-medium">{r.numero}</TableCell>
                 <TableCell>{formatDate(r.date)}</TableCell>
                 <TableCell>{catName(r.categorie_id)}</TableCell>
                 <TableCell className="max-w-[220px] truncate">{r.source}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {r.numero_facture || <span className="text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell className="text-right font-medium text-success">
                   {formatMontant(r.montant, devise)}
                 </TableCell>
@@ -419,6 +424,14 @@ function RecettesPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>{t("N° facture")}</Label>
+              <Input
+                value={form.numero_facture}
+                maxLength={60}
+                onChange={(e) => setForm({ ...form, numero_facture: e.target.value })}
+              />
             </div>
             <div>
               <Label>{t("Description")}</Label>

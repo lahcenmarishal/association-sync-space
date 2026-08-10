@@ -178,10 +178,9 @@ function CaissePage() {
             ),
           ],
         ],
-        entetes: ["الرقم", "التاريخ", "المبلغ الأولي", "المصاريف", "الرصيد", "المسؤول", "الحالة"],
+        entetes: ["التاريخ", "المبلغ الأولي", "المصاريف", "الرصيد", "المسؤول", "الحالة"],
         lignes: filtered.map((c) => ({
           cellules: [
-            String(c.numero),
             formatDate(c.date),
             formatMontant(c.montant_initial, devise),
             formatMontant(totalDe(c.id), devise),
