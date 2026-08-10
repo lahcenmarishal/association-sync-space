@@ -133,6 +133,8 @@ const CSS = `
 
 
 const PDF_CSS = `${CSS}
+  .tableau { overflow: visible; }
+  .tableau table { min-width: 0; }
   .page { max-width: none; padding: 14px; }
   .barre { display: none; }
   th, td { font-size: 11px; padding: 6px 7px; }
