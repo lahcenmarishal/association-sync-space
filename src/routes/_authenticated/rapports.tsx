@@ -364,12 +364,22 @@ function RapportsPage() {
           });
 
           const lignes = [];
-          for (const row of rows) {
+          for (const [i, row] of rows.entries()) {
+            const estTotal = i === rows.length - 1 && row["type"] === tr("Total");
+            const variante = estTotal
+              ? ("total" as const)
+              : row["type"] === tr("Recette")
+                ? ("recette" as const)
+                : row["type"] === tr("Dépense")
+                  ? ("depense" as const)
+                  : undefined;
             lignes.push({
               cellules: columns.map((c) => String(row[c.key] ?? "—")),
               documents: await resoudre((row["__docs"] as string[] | undefined) ?? []),
+              variante,
             });
           }
+
           const nbDocs =
             lignes.reduce((s, l) => s + l.documents.length, 0) + documentsRapport.length;
 
