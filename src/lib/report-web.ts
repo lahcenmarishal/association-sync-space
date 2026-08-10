@@ -104,7 +104,31 @@ const CSS = `
   .liens-index .num { background: #0e7c7b; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 11px; }
   .liens-index a { color: #0e7c7b; font-size: 12px; text-decoration: underline; word-break: break-all; }
   footer { margin-top: 18px; font-size: 13px; color: #557; }
-`;
+  .tableau { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; }
+  .tableau table { min-width: 760px; }
+  @media (max-width: 700px) {
+    body { font-size: 14px; }
+    .page { padding: 12px; }
+    header { flex-direction: column; text-align: center; gap: 10px; padding: 16px; }
+    header img { width: 64px; height: 64px; }
+    header h1 { font-size: 20px; }
+    header p { font-size: 13px; }
+    .barre { flex-wrap: wrap; }
+    .barre button { flex: 1 1 140px; }
+    .resume { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .carte { padding: 10px; }
+    .carte .valeur { font-size: 17px; }
+    .carte .label { font-size: 11px; }
+    th, td { font-size: 11px; padding: 6px 6px; white-space: nowrap; }
+    .tableau table { min-width: 640px; }
+    td.docs { min-width: 120px; }
+    .doc.img img { width: 52px; height: 40px; }
+    .doc.file { max-width: 130px; }
+    .doc.file .nom { max-width: 70px; }
+    .annexe-titre { font-size: 18px; }
+    .annexe-grille figure { width: 100%; }
+  }
+
 
 const PDF_CSS = `${CSS}
   .page { max-width: none; padding: 14px; }
