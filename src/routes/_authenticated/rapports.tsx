@@ -372,11 +372,11 @@ function RapportsPage() {
                 ? ("recette" as const)
                 : row["type"] === tr("Dépense")
                   ? ("depense" as const)
-                  : undefined;
+                  : null;
             lignes.push({
               cellules: columns.map((c) => String(row[c.key] ?? "—")),
               documents: await resoudre((row["__docs"] as string[] | undefined) ?? []),
-              variante,
+              ...(variante ? { variante } : {}),
             });
           }
 
