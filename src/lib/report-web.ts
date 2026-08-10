@@ -128,6 +128,8 @@ const CSS = `
     .annexe-titre { font-size: 18px; }
     .annexe-grille figure { width: 100%; }
   }
+`;
+
 
 
 const PDF_CSS = `${CSS}
