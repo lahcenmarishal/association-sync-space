@@ -167,6 +167,7 @@ export type Database = {
           montant: number
           moyen_paiement: string
           numero: number
+          numero_cheque: string
           pieces_jointes: Json
           updated_at: string
         }
@@ -184,6 +185,7 @@ export type Database = {
           montant: number
           moyen_paiement?: string
           numero?: never
+          numero_cheque?: string
           pieces_jointes?: Json
           updated_at?: string
         }
@@ -201,6 +203,7 @@ export type Database = {
           montant?: number
           moyen_paiement?: string
           numero?: never
+          numero_cheque?: string
           pieces_jointes?: Json
           updated_at?: string
         }
@@ -335,6 +338,7 @@ export type Database = {
           montant: number
           moyen_paiement: string
           numero: number
+          numero_facture: string
           piece_jointe: string | null
           pieces_jointes: Json
           source: string
@@ -350,6 +354,7 @@ export type Database = {
           montant: number
           moyen_paiement?: string
           numero?: never
+          numero_facture?: string
           piece_jointe?: string | null
           pieces_jointes?: Json
           source?: string
@@ -365,6 +370,7 @@ export type Database = {
           montant?: number
           moyen_paiement?: string
           numero?: never
+          numero_facture?: string
           piece_jointe?: string | null
           pieces_jointes?: Json
           source?: string
