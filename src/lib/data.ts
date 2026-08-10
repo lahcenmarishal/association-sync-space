@@ -18,6 +18,7 @@ export type Recette = {
   source: string;
   montant: number;
   moyen_paiement: string;
+  numero_facture: string;
   description: string | null;
   piece_jointe: string | null;
   pieces_jointes: string[];
@@ -33,6 +34,7 @@ export type Depense = {
   fournisseur: string;
   montant: number;
   moyen_paiement: string;
+  numero_cheque: string;
   description: string | null;
   justificatif: string | null;
   pieces_jointes: string[];
@@ -41,6 +43,7 @@ export type Depense = {
   created_by: string | null;
   created_at: string;
 };
+
 
 export type Travailleur = {
   id: string;
