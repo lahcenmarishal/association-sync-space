@@ -223,6 +223,7 @@ function DepensesPage() {
             d.description ?? "—",
           ],
           documents,
+          variante: "depense" as const,
         });
       }
       ouvrirRapportWeb({

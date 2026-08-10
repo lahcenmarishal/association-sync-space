@@ -8,6 +8,8 @@ export type RapportDocument = { url: string; nom: string };
 export type RapportLigne = {
   cellules: string[];
   documents: RapportDocument[];
+  /** Colorisation inspirée du registre bancaire : vert = recette, rose = dépense. */
+  variante?: "recette" | "depense" | "total";
 };
 
 export type RapportWeb = {
@@ -75,6 +77,11 @@ const CSS = `
   th, td { border: 1px solid #d3e3e2; padding: 9px 10px; text-align: right; font-size: 13px; vertical-align: middle; }
   th { background: #0e7c7b; color: #fff; }
   tr:nth-child(even) td { background: #f2f7f6; }
+  tr.recette td { background: #eaf6e6; }
+  tr.recette:nth-child(even) td { background: #e0f0da; }
+  tr.depense td { background: #fbe4e6; }
+  tr.depense:nth-child(even) td { background: #f7d7da; }
+  tr.total td { background: #123a3a; color: #fff; font-weight: 700; }
   td.docs { min-width: 190px; }
   .doc { display: inline-flex; align-items: center; gap: 6px; margin: 3px; text-decoration: none; color: #0e7c7b; }
   .doc.img img { width: 74px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid #d3e3e2; }
@@ -112,7 +119,7 @@ function corpsHtml(rapport: RapportWeb, avecBarre: boolean, avecDocuments = true
 
   const lignes = rapport.lignes
     .map(
-      (l) => `<tr>
+      (l) => `<tr class="${l.variante ?? ""}">
         ${l.cellules.map((c) => `<td>${esc(c)}</td>`).join("")}
         ${
           avecDocuments

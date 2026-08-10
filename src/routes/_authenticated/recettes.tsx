@@ -213,6 +213,7 @@ function RecettesPage() {
             r.description ?? "—",
           ],
           documents,
+          variante: "recette" as const,
         });
       }
       ouvrirRapportWeb({
