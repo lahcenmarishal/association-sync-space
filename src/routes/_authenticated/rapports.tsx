@@ -303,8 +303,11 @@ function RapportsPage() {
   const completRows = [
     ...completLignes.map((c) => ({
       type: c.type,
+      date: c.date,
       nom: c.nom,
-      nb: c.nb,
+      tiers: c.tiers,
+      piece: c.piece,
+      paiement: c.paiement,
       rec: c.ordre === 0 ? formatMontant(c.rec, devise) : "—",
       dep: c.ordre === 1 ? formatMontant(c.dep, devise) : "—",
       solde: formatMontant(c.rec - c.dep, devise),
@@ -312,8 +315,11 @@ function RapportsPage() {
     })),
     {
       type: tr("Total"),
+      date: `${r.length + d.length} ${tr("opération(s)")}`,
       nom: "—",
-      nb: r.length + d.length,
+      tiers: "—",
+      piece: "—",
+      paiement: "—",
       rec: formatMontant(totalR, devise),
       dep: formatMontant(totalD, devise),
       solde: formatMontant(totalR - totalD, devise),
@@ -321,6 +327,7 @@ function RapportsPage() {
       __docs: [] as string[],
     },
   ];
+
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
