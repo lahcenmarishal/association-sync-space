@@ -243,8 +243,8 @@ function RapportsPage() {
   }, [r, d, categories]);
 
   const completColumns = [
-    { header: tr("Type"), key: "type" },
     { header: tr("Date"), key: "date" },
+    { header: tr("Type"), key: "type" },
     { header: tr("Catégorie"), key: "nom" },
     { header: tr("Bénéficiaire / Source"), key: "tiers" },
     { header: tr("N° facture / chèque"), key: "piece" },
