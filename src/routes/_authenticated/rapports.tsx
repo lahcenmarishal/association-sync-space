@@ -28,6 +28,7 @@ import {
   LIEN_LONGUE_DUREE,
   resoudreDocuments,
   toPiecesJointes,
+  soldeAvant,
 } from "@/lib/data";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
@@ -97,6 +98,8 @@ function RapportsPage() {
   const d = depenses.filter((x) => inPeriod(x.date));
   const totalR = r.reduce((t, x) => t + Number(x.montant), 0);
   const totalD = d.reduce((t, x) => t + Number(x.montant), 0);
+  const debutPeriode = `${annee}-${mois === "all" ? "01" : mois}-01`;
+  const soldePrecedent = soldeAvant(recettes, depenses, debutPeriode);
 
   const catName = (id: string | null) =>
     categories.find((c) => c.id === id)?.nom ?? tr("Sans catégorie");
@@ -389,9 +392,11 @@ function RapportsPage() {
             association:
               params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
             resume: [
+              ["الرصيد السابق", formatMontant(soldePrecedent, devise)],
               ["مجموع المداخيل", formatMontant(totalR, devise)],
               ["مجموع المصاريف", formatMontant(totalD, devise)],
-              ["الرصيد", formatMontant(totalR - totalD, devise)],
+              ["رصيد هذه الفترة", formatMontant(totalR - totalD, devise)],
+              ["الرصيد الحالي", formatMontant(soldePrecedent + totalR - totalD, devise)],
               ["عدد الوثائق المرفقة", String(nbDocs)],
             ],
             entetes: columns.map((c) => c.header),

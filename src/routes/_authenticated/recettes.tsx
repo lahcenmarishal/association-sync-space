@@ -9,6 +9,8 @@ import { useFilters, matchFilters, usePagination } from "@/hooks/useFilters";
 import {
   useCategories,
   useRecettes,
+  useDepenses,
+  soldeAvant,
   useSaveRow,
   useDeleteRow,
   uploadDocuments,
@@ -93,6 +95,7 @@ function RecettesPage() {
   const { t } = useI18n();
   const { canManageFinance } = useAuth();
   const { data: recettes = [], isLoading } = useRecettes();
+  const { data: toutesDepenses = [] } = useDepenses();
   const { data: categories = [] } = useCategories();
   const { data: params } = useParametres();
   const devise = params?.devise ?? "DH";
@@ -197,6 +200,8 @@ function RecettesPage() {
 
       const onExport = async () => {
       const toastId = toast.loading(t("Génération du rapport…"));
+      const debut = filtered.map((x) => x.date).sort()[0];
+      const soldePrec = soldeAvant(recettes, toutesDepenses, debut);
       const lignes = [];
       for (const r of filtered) {
         const documents = await resoudreDocuments(
@@ -221,8 +226,10 @@ function RecettesPage() {
         sousTitre: `${filtered.length} عملية — المجموع ${formatMontant(total, devise)}`,
         association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
         resume: [
+          ["الرصيد السابق", formatMontant(soldePrec, devise)],
           ["عدد العمليات", String(filtered.length)],
           ["مجموع المداخيل", formatMontant(total, devise)],
+          ["الرصيد الحالي", formatMontant(soldePrec + total, devise)],
           ["عدد الوثائق المرفقة", String(lignes.reduce((s, l) => s + l.documents.length, 0))],
         ],
         entetes: ["التاريخ", "الصنف", "المصدر", "رقم الفاتورة", "المبلغ", "طريقة الأداء", "البيان"],

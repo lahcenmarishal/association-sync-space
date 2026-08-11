@@ -388,3 +388,18 @@ export async function resoudreDocuments(
   );
   return resultats.filter((d): d is { url: string; nom: string } => d !== null);
 }
+
+/**
+ * « الرصيد السابق » : solde cumulé (recettes − dépenses) strictement avant une date.
+ * Sert d'en-tête aux rapports, comme dans le registre bancaire de l'association.
+ */
+export function soldeAvant(
+  recettes: { date: string; montant: number | string }[],
+  depenses: { date: string; montant: number | string }[],
+  debut?: string,
+) {
+  if (!debut) return 0;
+  const somme = (ops: { date: string; montant: number | string }[]) =>
+    ops.filter((o) => o.date < debut).reduce((t, o) => t + Number(o.montant), 0);
+  return somme(recettes) - somme(depenses);
+}
