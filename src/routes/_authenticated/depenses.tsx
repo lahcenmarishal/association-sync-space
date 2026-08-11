@@ -210,6 +210,8 @@ function DepensesPage() {
 
       const onExport = async () => {
       const toastId = toast.loading(t("Génération du rapport…"));
+      const debut = filtered.map((x) => x.date).sort()[0];
+      const soldePrec = soldeAvant(toutesRecettes, depenses, debut);
       const lignes = [];
       for (const d of filtered) {
         const documents = await resoudreDocuments(
