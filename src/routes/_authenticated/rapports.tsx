@@ -28,6 +28,7 @@ import {
   LIEN_LONGUE_DUREE,
   resoudreDocuments,
   toPiecesJointes,
+  soldeAvant,
 } from "@/lib/data";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
