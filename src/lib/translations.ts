@@ -170,7 +170,6 @@ export const AR: Record<string, string> = {
   Montant: "المبلغ",
   Paiement: "الأداء",
   Description: "البيان",
-  Description: "الوصف",
   Actions: "إجراءات",
   "Chargement…": "جاري التحميل…",
   "Chargement des données…": "جاري تحميل المعطيات…",
