@@ -97,6 +97,8 @@ function RapportsPage() {
   const d = depenses.filter((x) => inPeriod(x.date));
   const totalR = r.reduce((t, x) => t + Number(x.montant), 0);
   const totalD = d.reduce((t, x) => t + Number(x.montant), 0);
+  const debutPeriode = `${annee}-${mois === "all" ? "01" : mois}-01`;
+  const soldePrecedent = soldeAvant(recettes, depenses, debutPeriode);
 
   const catName = (id: string | null) =>
     categories.find((c) => c.id === id)?.nom ?? tr("Sans catégorie");
