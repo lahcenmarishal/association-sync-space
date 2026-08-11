@@ -386,8 +386,7 @@ function RapportsPage() {
             });
           }
 
-          const nbDocs =
-            lignes.reduce((s, l) => s + l.documents.length, 0) + documentsRapport.length;
+
 
           ouvrirRapportWeb({
             titre: titreAr,
@@ -400,7 +399,6 @@ function RapportsPage() {
               ["مجموع المصاريف", formatMontant(totalD, devise)],
               ["رصيد هذه الفترة", formatMontant(totalR - totalD, devise)],
               ["الرصيد الحالي", formatMontant(soldePrecedent + totalR - totalD, devise)],
-              ["عدد الوثائق المرفقة", String(nbDocs)],
             ],
             entetes: columns.map((c) => c.header),
             lignes,
