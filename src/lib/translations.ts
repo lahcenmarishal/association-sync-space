@@ -169,6 +169,7 @@ export const AR: Record<string, string> = {
   Date: "التاريخ",
   Montant: "المبلغ",
   Paiement: "الأداء",
+  Description: "البيان",
   Description: "الوصف",
   Actions: "إجراءات",
   "Chargement…": "جاري التحميل…",
