@@ -386,8 +386,7 @@ function RapportsPage() {
             });
           }
 
-          const nbDocs =
-            lignes.reduce((s, l) => s + l.documents.length, 0) + documentsRapport.length;
+
 
           ouvrirRapportWeb({
             titre: titreAr,
