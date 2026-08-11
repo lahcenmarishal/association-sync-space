@@ -389,9 +389,11 @@ function RapportsPage() {
             association:
               params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
             resume: [
+              ["الرصيد السابق", formatMontant(soldePrecedent, devise)],
               ["مجموع المداخيل", formatMontant(totalR, devise)],
               ["مجموع المصاريف", formatMontant(totalD, devise)],
-              ["الرصيد", formatMontant(totalR - totalD, devise)],
+              ["رصيد هذه الفترة", formatMontant(totalR - totalD, devise)],
+              ["الرصيد الحالي", formatMontant(soldePrecedent + totalR - totalD, devise)],
               ["عدد الوثائق المرفقة", String(nbDocs)],
             ],
             entetes: columns.map((c) => c.header),
