@@ -240,7 +240,6 @@ function DepensesPage() {
           ["عدد العمليات", String(filtered.length)],
           ["مجموع المصاريف", formatMontant(total, devise)],
           ["الرصيد الحالي", formatMontant(soldePrec - total, devise)],
-          ["عدد الوثائق المرفقة", String(lignes.reduce((s, l) => s + l.documents.length, 0))],
         ],
         entetes: ["التاريخ", "الصنف", "المستفيد", "رقم الشيك", "المبلغ", "طريقة الأداء", "البيان"],
         lignes,

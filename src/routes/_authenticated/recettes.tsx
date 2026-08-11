@@ -230,7 +230,6 @@ function RecettesPage() {
           ["عدد العمليات", String(filtered.length)],
           ["مجموع المداخيل", formatMontant(total, devise)],
           ["الرصيد الحالي", formatMontant(soldePrec + total, devise)],
-          ["عدد الوثائق المرفقة", String(lignes.reduce((s, l) => s + l.documents.length, 0))],
         ],
         entetes: ["التاريخ", "الصنف", "المصدر", "رقم الفاتورة", "المبلغ", "طريقة الأداء", "البيان"],
         lignes,
