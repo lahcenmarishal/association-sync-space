@@ -252,6 +252,7 @@ function RapportsPage() {
     { header: tr("Bénéficiaire / Source"), key: "tiers" },
     { header: tr("N° facture / chèque"), key: "piece" },
     { header: tr("Paiement"), key: "paiement" },
+    { header: tr("Description"), key: "description" },
     { header: tr("Recettes"), key: "rec" },
     { header: tr("Dépenses"), key: "dep" },
     { header: tr("Solde"), key: "solde" },
