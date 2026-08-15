@@ -440,12 +440,14 @@ function RapportsPage() {
     titreAr,
     columns,
     rows,
+    resume,
   }: {
     name: string;
     titre: string;
     titreAr: string;
     columns: { header: string; key: string }[];
     rows: Record<string, unknown>[];
+    resume?: [string, string][];
   }) => (
     <div className="mb-3 flex flex-wrap gap-2">
       <Button
@@ -461,10 +463,12 @@ function RapportsPage() {
 
           const lignes = [];
           for (const [i, row] of rows.entries()) {
-            const estTotal = i === rows.length - 1 && row["type"] === tr("Total");
+            const estTotal =
+              i === rows.length - 1 &&
+              (row["type"] === tr("Total") || row["date"] === tr("Total"));
             const variante = estTotal
               ? ("total" as const)
-              : row["type"] === tr("Recette")
+              : row["type"] === tr("Recette") || row["type"] === tr("Rechargement caisse")
                 ? ("recette" as const)
                 : row["type"] === tr("Dépense")
                   ? ("depense" as const)
@@ -483,13 +487,14 @@ function RapportsPage() {
             sousTitre: periodeLabel,
             association:
               params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
-            resume: [
+            resume: resume ?? [
               ["الرصيد السابق", formatMontant(soldePrecedent, devise)],
               ["مجموع المداخيل", formatMontant(totalR, devise)],
               ["مجموع المصاريف", formatMontant(totalD, devise)],
               ["رصيد هذه الفترة", formatMontant(totalR - totalD, devise)],
               ["الرصيد الحالي", formatMontant(soldePrecedent + totalR - totalD, devise)],
             ],
+
             entetes: columns.map((c) => c.header),
             lignes,
             documentsRapport,
