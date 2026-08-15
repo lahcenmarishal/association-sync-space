@@ -10,7 +10,6 @@ import {
   useCategories,
   useRecettes,
   useDepenses,
-  useCaisses,
   soldeAvant,
   useSaveRow,
   useDeleteRow,
@@ -27,7 +26,6 @@ import { useI18n } from "@/lib/i18n";
 import { formatDate, formatMontant, todayISO } from "@/lib/format";
 import { MOYENS_PAIEMENT, MOYENS_LABELS } from "@/lib/constants";
 import { ouvrirRapportWeb } from "@/lib/report-web";
-import { caisseParJour, rechargesDeCaisses } from "@/lib/report-caisse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +96,6 @@ function RecettesPage() {
   const { canManageFinance } = useAuth();
   const { data: recettes = [], isLoading } = useRecettes();
   const { data: toutesDepenses = [] } = useDepenses();
-  const { data: caisses = [] } = useCaisses();
   const { data: categories = [] } = useCategories();
   const { data: params } = useParametres();
   const devise = params?.devise ?? "DH";
