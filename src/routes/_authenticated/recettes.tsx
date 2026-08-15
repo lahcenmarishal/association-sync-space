@@ -240,61 +240,6 @@ function RecettesPage() {
       toast.success(t("Rapport généré"), { id: toastId });
   };
 
-  const onExportCaisse = async () => {
-    const toastId = toast.loading(t("Génération du rapport…"));
-    // La caisse n'a pas de recettes propres : elle est rechargée (montant initial)
-    // puis dépensée en espèces. Le cumul tient compte des deux mouvements.
-    const dansPeriode = (date: string) =>
-      (filters.annee === "all" || date.startsWith(filters.annee)) &&
-      (filters.mois === "all" || date.slice(5, 7) === filters.mois) &&
-      (!filters.du || date >= filters.du) &&
-      (!filters.au || date <= filters.au);
-    const docsDe = (ops: { pieces_jointes?: unknown; justificatif?: unknown }[]) =>
-      ops.flatMap((o) => [...toPiecesJointes(o.pieces_jointes), ...toPiecesJointes(o.justificatif)]);
-    const depEspeces = toutesDepenses.filter((x) => dansPeriode(x.date));
-    const jours = caisseParJour(rechargesDeCaisses(caisses, dansPeriode), depEspeces, docsDe);
-    const totalRecharges = jours.reduce((s, j) => s + j.recettes, 0);
-    const totalDepenses = jours.reduce((s, j) => s + j.depenses, 0);
-    const lignes = [];
-    for (const j of jours) {
-      lignes.push({
-        cellules: [
-          formatDate(j.date),
-          String(j.nb),
-          j.recettes ? formatMontant(j.recettes, devise) : "—",
-          j.depenses ? formatMontant(j.depenses, devise) : "—",
-          formatMontant(j.cumul, devise),
-        ],
-        documents: await resoudreDocuments(j.docs),
-        variante: (j.recettes >= j.depenses ? "recette" : "depense") as "recette" | "depense",
-      });
-    }
-    lignes.push({
-      cellules: [
-        "المجموع",
-        String(jours.reduce((s, j) => s + j.nb, 0)),
-        formatMontant(totalRecharges, devise),
-        formatMontant(totalDepenses, devise),
-        formatMontant(totalRecharges - totalDepenses, devise),
-      ],
-      documents: [],
-      variante: "total" as const,
-    });
-    ouvrirRapportWeb({
-      titre: "تقرير الصندوق اليومي",
-      sousTitre: `${jours.length} يوم`,
-      association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
-      resume: [
-        ["عدد الأيام", String(jours.length)],
-        ["مجموع تعبئة الصندوق", formatMontant(totalRecharges, devise)],
-        ["مجموع المصاريف نقدا", formatMontant(totalDepenses, devise)],
-        ["الرصيد المتبقي بالصندوق", formatMontant(totalRecharges - totalDepenses, devise)],
-      ],
-      entetes: ["التاريخ", "عدد العمليات", "تعبئة الصندوق", "المصاريف نقدا", "الرصيد التراكمي"],
-      lignes,
-    });
-    toast.success(t("Rapport généré"), { id: toastId });
-  };
 
   return (
     <AppShell
@@ -319,7 +264,6 @@ function RecettesPage() {
           options: MOYENS_PAIEMENT.map((m) => ({ value: m, label: MOYENS_LABELS[m]! })),
         }}
         onExport={onExport}
-        onExportCaisse={onExportCaisse}
       />
 
       <div className="surface overflow-x-auto">

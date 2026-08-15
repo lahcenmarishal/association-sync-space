@@ -756,6 +756,7 @@ function RapportsPage() {
             titreAr="تقرير الصندوق اليومي"
             columns={caisseColumns}
             rows={caisseRows}
+            resume={caisseResume}
           />
           <SimpleTable columns={caisseColumns} rows={caisseRows} />
         </TabsContent>
