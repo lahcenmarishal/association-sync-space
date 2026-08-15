@@ -352,10 +352,6 @@ function RapportsPage() {
     { header: tr("Solde du jour"), key: "solde" },
     { header: tr("Solde cumulé"), key: "cumul" },
   ];
-    { header: tr("Dépenses"), key: "dep" },
-    { header: tr("Solde du jour"), key: "solde" },
-    { header: tr("Solde cumulé"), key: "cumul" },
-  ];
   const totalCaisseR = joursCaisse.reduce((t, j) => t + j.recettes, 0);
   const totalCaisseD = joursCaisse.reduce((t, j) => t + j.depenses, 0);
   const caisseRows = [
