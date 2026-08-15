@@ -34,6 +34,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { ouvrirRapportWeb } from "@/lib/report-web";
+import { caisseParJour } from "@/lib/report-caisse";
 import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS, MOYENS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -637,6 +638,7 @@ function RapportsPage() {
             <TabsTrigger value="complet">{tr("Rapport complet")}</TabsTrigger>
             <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
             <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
+            <TabsTrigger value="caisse">{tr("Caisse quotidienne")}</TabsTrigger>
             <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
           </TabsList>
         </div>
@@ -687,6 +689,17 @@ function RapportsPage() {
             rows={catRows}
           />
           <SimpleTable columns={catColumns} rows={catRows} />
+        </TabsContent>
+
+        <TabsContent value="caisse">
+          <ExportButtons
+            name={`caisse-quotidienne-${periodeKey}`}
+            titre={tr("Caisse quotidienne")}
+            titreAr="تقرير الصندوق اليومي"
+            columns={caisseColumns}
+            rows={caisseRows}
+          />
+          <SimpleTable columns={caisseColumns} rows={caisseRows} />
         </TabsContent>
 
         <TabsContent value="activites">
