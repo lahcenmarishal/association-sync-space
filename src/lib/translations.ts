@@ -356,6 +356,7 @@ export const AR: Record<string, string> = {
   "Opérations": "العمليات",
   "Rapport complet": "التقرير الشامل",
   "Rapport caisse quotidien": "تقرير الصندوق اليومي",
+  "Rechargement caisse": "تعبئة الصندوق",
   "Solde du jour": "رصيد اليوم",
   "Solde cumulé": "الرصيد التراكمي",
   "Activité": "النشاط",
