@@ -340,42 +340,92 @@ function RapportsPage() {
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
-  // Caisse quotidienne : rechargements de caisse (crédit) et dépenses en espèces (débit).
-  const joursCaisse = useMemo(
-    () => caisseParJour(rechargesDeCaisses(caisses, inPeriod), d, docsDesOperations),
+  // Caisse quotidienne : rechargements de caisse (crédit) et dépenses en espèces (débit),
+  // détaillés opération par opération.
+  const caisseLignes = useMemo(() => {
+    const recharges = rechargesDeCaisses(caisses, inPeriod).map((c) => ({
+      date: c.date,
+      type: tr("Rechargement caisse"),
+      nom: "—",
+      tiers: "—",
+      piece: "—",
+      paiement: tr(MOYENS_LABELS["especes"] ?? "especes"),
+      description: "—",
+      rec: Number(c.montant),
+      dep: 0,
+      docs: [] as string[],
+    }));
+    const cash = d
+      .filter((x) => EST_ESPECES(x.moyen_paiement))
+      .map((x) => ({
+        date: x.date,
+        type: tr("Dépense"),
+        nom: catName(x.categorie_id),
+        tiers: x.fournisseur || "—",
+        piece: x.numero_cheque || "—",
+        paiement: tr(MOYENS_LABELS[x.moyen_paiement] ?? x.moyen_paiement),
+        description: x.description || "—",
+        rec: 0,
+        dep: Number(x.montant),
+        docs: docsDesOperations([x]),
+      }));
+    const toutes = [...recharges, ...cash].sort((a, b) => a.date.localeCompare(b.date));
+    let cumul = 0;
+    return toutes.map((l) => {
+      cumul += l.rec - l.dep;
+      return { ...l, cumul };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [caisses, d, annee, mois],
-  );
+  }, [caisses, d, categories, annee, mois]);
+
   const caisseColumns = [
     { header: tr("Date"), key: "date" },
-    { header: tr("Opérations"), key: "nb" },
+    { header: tr("Type"), key: "type" },
+    { header: tr("Catégorie"), key: "nom" },
+    { header: tr("Bénéficiaire / Source"), key: "tiers" },
+    { header: tr("N° facture / chèque"), key: "piece" },
+    { header: tr("Paiement"), key: "paiement" },
+    { header: tr("Description"), key: "description" },
     { header: tr("Rechargement caisse"), key: "rec" },
     { header: tr("Dépenses"), key: "dep" },
-    { header: tr("Solde du jour"), key: "solde" },
     { header: tr("Solde cumulé"), key: "cumul" },
   ];
-  const totalCaisseR = joursCaisse.reduce((t, j) => t + j.recettes, 0);
-  const totalCaisseD = joursCaisse.reduce((t, j) => t + j.depenses, 0);
+  const totalCaisseR = caisseLignes.reduce((t, l) => t + l.rec, 0);
+  const totalCaisseD = caisseLignes.reduce((t, l) => t + l.dep, 0);
   const caisseRows = [
-    ...joursCaisse.map((j) => ({
-      date: formatDate(j.date),
-      nb: j.nb,
-      rec: j.recettes ? formatMontant(j.recettes, devise) : "—",
-      dep: j.depenses ? formatMontant(j.depenses, devise) : "—",
-      solde: formatMontant(j.solde, devise),
-      cumul: formatMontant(j.cumul, devise),
-      __docs: j.docs,
+    ...caisseLignes.map((l) => ({
+      date: formatDate(l.date),
+      type: l.type,
+      nom: l.nom,
+      tiers: l.tiers,
+      piece: l.piece,
+      paiement: l.paiement,
+      description: l.description,
+      rec: l.rec ? formatMontant(l.rec, devise) : "—",
+      dep: l.dep ? formatMontant(l.dep, devise) : "—",
+      cumul: formatMontant(l.cumul, devise),
+      __docs: l.docs,
     })),
     {
       date: tr("Total"),
-      nb: joursCaisse.reduce((t, j) => t + j.nb, 0),
+      type: `${caisseLignes.length} ${tr("opération(s)")}`,
+      nom: "—",
+      tiers: "—",
+      piece: "—",
+      paiement: "—",
+      description: "—",
       rec: formatMontant(totalCaisseR, devise),
       dep: formatMontant(totalCaisseD, devise),
-      solde: formatMontant(totalCaisseR - totalCaisseD, devise),
       cumul: formatMontant(totalCaisseR - totalCaisseD, devise),
       __docs: [] as string[],
     },
   ];
+  const caisseResume: [string, string][] = [
+    ["مجموع تعبئة الصندوق", formatMontant(totalCaisseR, devise)],
+    ["مجموع المصاريف نقدا", formatMontant(totalCaisseD, devise)],
+    ["الرصيد المتبقي بالصندوق", formatMontant(totalCaisseR - totalCaisseD, devise)],
+  ];
+
 
   const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
