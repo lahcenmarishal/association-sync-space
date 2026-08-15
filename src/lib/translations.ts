@@ -355,7 +355,6 @@ export const AR: Record<string, string> = {
   "Aucune donnée sur la période.": "لا توجد معطيات في هذه الفترة.",
   "Opérations": "العمليات",
   "Rapport complet": "التقرير الشامل",
-  "Caisse quotidienne": "الصندوق اليومي",
   "Rapport caisse quotidien": "تقرير الصندوق اليومي",
   "Solde du jour": "رصيد اليوم",
   "Solde cumulé": "الرصيد التراكمي",
