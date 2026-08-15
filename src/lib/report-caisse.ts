@@ -1,17 +1,24 @@
 /**
- * Rapport « caisse quotidienne » : uniquement les opérations en espèces,
- * regroupées jour par jour (recettes, dépenses, solde du jour et cumul).
+ * Rapport « caisse quotidienne ».
+ *
+ * Logique réelle de l'association : la caisse n'a pas de « recettes » propres,
+ * elle est **rechargée** (montant initial d'une caisse ouverte) puis dépensée
+ * en espèces. Le côté crédit du rapport correspond donc aux rechargements de
+ * caisse, et le côté débit aux dépenses payées en espèces.
  */
 export const EST_ESPECES = (moyen: string | null | undefined) => (moyen ?? "") === "especes";
 
 export type OpCaisse = {
   date: string;
   montant: number | string;
-  moyen_paiement: string;
+  moyen_paiement?: string | null;
   pieces_jointes?: unknown;
   piece_jointe?: unknown;
   justificatif?: unknown;
 };
+
+/** Rechargement de caisse (une ouverture de caisse avec son montant initial). */
+export type RechargeCaisse = { date: string; montant: number | string };
 
 export type JourCaisse = {
   date: string;
@@ -23,15 +30,24 @@ export type JourCaisse = {
   docs: string[];
 };
 
+/** Convertit les caisses en rechargements exploitables par le rapport. */
+export function rechargesDeCaisses(
+  caisses: { date: string; montant_initial: number | string }[],
+  dansPeriode: (date: string) => boolean = () => true,
+): RechargeCaisse[] {
+  return caisses
+    .filter((c) => dansPeriode(c.date) && Number(c.montant_initial) > 0)
+    .map((c) => ({ date: c.date, montant: Number(c.montant_initial) }));
+}
+
 export function caisseParJour(
-  recettes: OpCaisse[],
+  recharges: RechargeCaisse[],
   depenses: OpCaisse[],
   docsDe: (ops: OpCaisse[]) => string[],
 ): JourCaisse[] {
-  const rec = recettes.filter((x) => EST_ESPECES(x.moyen_paiement));
   const dep = depenses.filter((x) => EST_ESPECES(x.moyen_paiement));
-  const jours = new Map<string, { rec: OpCaisse[]; dep: OpCaisse[] }>();
-  for (const x of rec) {
+  const jours = new Map<string, { rec: RechargeCaisse[]; dep: OpCaisse[] }>();
+  for (const x of recharges) {
     const j = jours.get(x.date) ?? { rec: [], dep: [] };
     j.rec.push(x);
     jours.set(x.date, j);
@@ -55,7 +71,7 @@ export function caisseParJour(
         depenses: totalD,
         solde: totalR - totalD,
         cumul,
-        docs: docsDe([...j.rec, ...j.dep]),
+        docs: docsDe(j.dep),
       };
     });
 }

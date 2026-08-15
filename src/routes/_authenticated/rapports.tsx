@@ -17,6 +17,7 @@ import {
   useCategories,
   useDepenses,
   useRecettes,
+  useCaisses,
   useActivites,
   useParametres,
   useRapportsDocuments,
@@ -34,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { ouvrirRapportWeb } from "@/lib/report-web";
-import { caisseParJour } from "@/lib/report-caisse";
+import { caisseParJour, rechargesDeCaisses } from "@/lib/report-caisse";
 import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS, MOYENS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +78,7 @@ function RapportsPage() {
   const { t: tr } = useI18n();
   const { data: recettes = [] } = useRecettes();
   const { data: depenses = [] } = useDepenses();
+  const { data: caisses = [] } = useCaisses();
   const { data: categories = [] } = useCategories();
   const { data: activites = [] } = useActivites();
   const { data: params } = useParametres();
@@ -338,15 +340,16 @@ function RapportsPage() {
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
-  // Caisse quotidienne : uniquement les opérations en espèces, jour par jour.
+  // Caisse quotidienne : rechargements de caisse (crédit) et dépenses en espèces (débit).
   const joursCaisse = useMemo(
-    () => caisseParJour(r, d, docsDesOperations),
-    [r, d],
+    () => caisseParJour(rechargesDeCaisses(caisses, inPeriod), d, docsDesOperations),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [caisses, d, annee, mois],
   );
   const caisseColumns = [
     { header: tr("Date"), key: "date" },
     { header: tr("Opérations"), key: "nb" },
-    { header: tr("Recettes"), key: "rec" },
+    { header: tr("Rechargement caisse"), key: "rec" },
     { header: tr("Dépenses"), key: "dep" },
     { header: tr("Solde du jour"), key: "solde" },
     { header: tr("Solde cumulé"), key: "cumul" },
