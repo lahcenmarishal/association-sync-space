@@ -28,7 +28,6 @@ import { useI18n } from "@/lib/i18n";
 import { formatDate, formatMontant, todayISO } from "@/lib/format";
 import { MOYENS_PAIEMENT, MOYENS_LABELS } from "@/lib/constants";
 import { ouvrirRapportWeb } from "@/lib/report-web";
-import { caisseParJour, rechargesDeCaisses } from "@/lib/report-caisse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -248,60 +247,6 @@ function DepensesPage() {
       toast.success(t("Rapport généré"), { id: toastId });
   };
 
-  const onExportCaisse = async () => {
-    const toastId = toast.loading(t("Génération du rapport…"));
-    // La caisse est d'abord rechargée (montant initial des caisses) puis dépensée
-    // en espèces : le rapport affiche les deux mouvements et le solde restant.
-    const dansPeriode = (date: string) =>
-      (filters.annee === "all" || date.startsWith(filters.annee)) &&
-      (filters.mois === "all" || date.slice(5, 7) === filters.mois) &&
-      (!filters.du || date >= filters.du) &&
-      (!filters.au || date <= filters.au);
-    const docsDe = (ops: { pieces_jointes?: unknown; justificatif?: unknown }[]) =>
-      ops.flatMap((o) => [...toPiecesJointes(o.pieces_jointes), ...toPiecesJointes(o.justificatif)]);
-    const jours = caisseParJour(rechargesDeCaisses(caisses, dansPeriode), filtered, docsDe);
-    const totalRecharges = jours.reduce((s, j) => s + j.recettes, 0);
-    const totalDepenses = jours.reduce((s, j) => s + j.depenses, 0);
-    const lignes = [];
-    for (const j of jours) {
-      lignes.push({
-        cellules: [
-          formatDate(j.date),
-          String(j.nb),
-          j.recettes ? formatMontant(j.recettes, devise) : "—",
-          j.depenses ? formatMontant(j.depenses, devise) : "—",
-          formatMontant(j.cumul, devise),
-        ],
-        documents: await resoudreDocuments(j.docs),
-        variante: (j.depenses > j.recettes ? "depense" : "recette") as "recette" | "depense",
-      });
-    }
-    lignes.push({
-      cellules: [
-        "المجموع",
-        String(jours.reduce((s, j) => s + j.nb, 0)),
-        formatMontant(totalRecharges, devise),
-        formatMontant(totalDepenses, devise),
-        formatMontant(totalRecharges - totalDepenses, devise),
-      ],
-      documents: [],
-      variante: "total" as const,
-    });
-    ouvrirRapportWeb({
-      titre: "تقرير مصاريف الصندوق اليومي",
-      sousTitre: `${jours.length} يوم`,
-      association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
-      resume: [
-        ["عدد الأيام", String(jours.length)],
-        ["مجموع تعبئة الصندوق", formatMontant(totalRecharges, devise)],
-        ["مجموع المصاريف نقدا", formatMontant(totalDepenses, devise)],
-        ["الرصيد المتبقي بالصندوق", formatMontant(totalRecharges - totalDepenses, devise)],
-      ],
-      entetes: ["التاريخ", "عدد العمليات", "تعبئة الصندوق", "المصاريف نقدا", "الرصيد التراكمي"],
-      lignes,
-    });
-    toast.success(t("Rapport généré"), { id: toastId });
-  };
 
   return (
     <AppShell
@@ -326,7 +271,6 @@ function DepensesPage() {
           options: MOYENS_PAIEMENT.map((m) => ({ value: m, label: MOYENS_LABELS[m]! })),
         }}
         onExport={onExport}
-        onExportCaisse={onExportCaisse}
       />
 
       <div className="surface overflow-x-auto">
