@@ -28,6 +28,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatDate, formatMontant, todayISO } from "@/lib/format";
 import { MOYENS_PAIEMENT, MOYENS_LABELS } from "@/lib/constants";
 import { ouvrirRapportWeb } from "@/lib/report-web";
+import { caisseParJour } from "@/lib/report-caisse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -247,6 +248,49 @@ function DepensesPage() {
       toast.success(t("Rapport généré"), { id: toastId });
   };
 
+  const onExportCaisse = async () => {
+    const toastId = toast.loading(t("Génération du rapport…"));
+    const docsDe = (ops: { pieces_jointes?: unknown; justificatif?: unknown }[]) =>
+      ops.flatMap((o) => [...toPiecesJointes(o.pieces_jointes), ...toPiecesJointes(o.justificatif)]);
+    const jours = caisseParJour([], filtered, docsDe);
+    const totalEspeces = jours.reduce((s, j) => s + j.depenses, 0);
+    const lignes = [];
+    for (const j of jours) {
+      lignes.push({
+        cellules: [
+          formatDate(j.date),
+          String(j.nb),
+          formatMontant(j.depenses, devise),
+          formatMontant(-j.cumul, devise),
+        ],
+        documents: await resoudreDocuments(j.docs),
+        variante: "depense" as const,
+      });
+    }
+    lignes.push({
+      cellules: [
+        "المجموع",
+        String(jours.reduce((s, j) => s + j.nb, 0)),
+        formatMontant(totalEspeces, devise),
+        formatMontant(totalEspeces, devise),
+      ],
+      documents: [],
+      variante: "total" as const,
+    });
+    ouvrirRapportWeb({
+      titre: "تقرير مصاريف الصندوق اليومي",
+      sousTitre: `${jours.length} يوم`,
+      association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
+      resume: [
+        ["عدد الأيام", String(jours.length)],
+        ["مجموع المصاريف نقدا", formatMontant(totalEspeces, devise)],
+      ],
+      entetes: ["التاريخ", "عدد العمليات", "المصاريف نقدا", "المجموع التراكمي"],
+      lignes,
+    });
+    toast.success(t("Rapport généré"), { id: toastId });
+  };
+
   return (
     <AppShell
       title={t("Dépenses")}
@@ -270,6 +314,7 @@ function DepensesPage() {
           options: MOYENS_PAIEMENT.map((m) => ({ value: m, label: MOYENS_LABELS[m]! })),
         }}
         onExport={onExport}
+        onExportCaisse={onExportCaisse}
       />
 
       <div className="surface overflow-x-auto">

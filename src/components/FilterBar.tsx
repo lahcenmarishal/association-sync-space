@@ -50,6 +50,7 @@ export function FilterBar({
   extra,
   showMontant = true,
   onExport,
+  onExportCaisse,
 }: {
   filters: FiltersState;
   set: (p: Partial<FiltersState>) => void;
@@ -59,6 +60,7 @@ export function FilterBar({
   extra?: { label: string; options: { value: string; label: string }[] };
   showMontant?: boolean;
   onExport?: (kind: "web") => void;
+  onExportCaisse?: () => void;
 }) {
   const { t } = useI18n();
   const years = Array.from({ length: 6 }, (_, i) => String(new Date().getFullYear() - i));
@@ -189,6 +191,11 @@ export function FilterBar({
             <Button onClick={() => onExport("web")}>
               <Presentation className="size-4" /> {t("Rapport arabe (web)")}
             </Button>
+            {onExportCaisse && (
+              <Button variant="outline" onClick={onExportCaisse}>
+                <Presentation className="size-4" /> {t("Rapport caisse quotidien")}
+              </Button>
+            )}
           </div>
         )}
       </div>
