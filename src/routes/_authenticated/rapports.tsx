@@ -338,15 +338,20 @@ function RapportsPage() {
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
-  // Caisse quotidienne : uniquement les opérations en espèces, jour par jour.
+  // Caisse quotidienne : rechargements de caisse (crédit) et dépenses en espèces (débit).
   const joursCaisse = useMemo(
-    () => caisseParJour(r, d, docsDesOperations),
-    [r, d],
+    () => caisseParJour(rechargesDeCaisses(caisses, inPeriod), d, docsDesOperations),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [caisses, d, annee, mois],
   );
   const caisseColumns = [
     { header: tr("Date"), key: "date" },
     { header: tr("Opérations"), key: "nb" },
-    { header: tr("Recettes"), key: "rec" },
+    { header: tr("Rechargement caisse"), key: "rec" },
+    { header: tr("Dépenses"), key: "dep" },
+    { header: tr("Solde du jour"), key: "solde" },
+    { header: tr("Solde cumulé"), key: "cumul" },
+  ];
     { header: tr("Dépenses"), key: "dep" },
     { header: tr("Solde du jour"), key: "solde" },
     { header: tr("Solde cumulé"), key: "cumul" },
