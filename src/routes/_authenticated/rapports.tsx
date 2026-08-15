@@ -17,6 +17,7 @@ import {
   useCategories,
   useDepenses,
   useRecettes,
+  useCaisses,
   useActivites,
   useParametres,
   useRapportsDocuments,
@@ -34,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDate, formatMontant, monthLabel } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { ouvrirRapportWeb } from "@/lib/report-web";
-import { caisseParJour } from "@/lib/report-caisse";
+import { caisseParJour, rechargesDeCaisses } from "@/lib/report-caisse";
 import { TYPE_ACTIVITE_LABELS, STATUT_ACTIVITE_LABELS, MOYENS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +78,7 @@ function RapportsPage() {
   const { t: tr } = useI18n();
   const { data: recettes = [] } = useRecettes();
   const { data: depenses = [] } = useDepenses();
+  const { data: caisses = [] } = useCaisses();
   const { data: categories = [] } = useCategories();
   const { data: activites = [] } = useActivites();
   const { data: params } = useParametres();
