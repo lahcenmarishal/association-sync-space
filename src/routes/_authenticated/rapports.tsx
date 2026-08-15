@@ -337,6 +337,42 @@ function RapportsPage() {
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
+  // Caisse quotidienne : uniquement les opérations en espèces, jour par jour.
+  const joursCaisse = useMemo(
+    () => caisseParJour(r, d, docsDesOperations),
+    [r, d],
+  );
+  const caisseColumns = [
+    { header: tr("Date"), key: "date" },
+    { header: tr("Opérations"), key: "nb" },
+    { header: tr("Recettes"), key: "rec" },
+    { header: tr("Dépenses"), key: "dep" },
+    { header: tr("Solde du jour"), key: "solde" },
+    { header: tr("Solde cumulé"), key: "cumul" },
+  ];
+  const totalCaisseR = joursCaisse.reduce((t, j) => t + j.recettes, 0);
+  const totalCaisseD = joursCaisse.reduce((t, j) => t + j.depenses, 0);
+  const caisseRows = [
+    ...joursCaisse.map((j) => ({
+      date: formatDate(j.date),
+      nb: j.nb,
+      rec: j.recettes ? formatMontant(j.recettes, devise) : "—",
+      dep: j.depenses ? formatMontant(j.depenses, devise) : "—",
+      solde: formatMontant(j.solde, devise),
+      cumul: formatMontant(j.cumul, devise),
+      __docs: j.docs,
+    })),
+    {
+      date: tr("Total"),
+      nb: joursCaisse.reduce((t, j) => t + j.nb, 0),
+      rec: formatMontant(totalCaisseR, devise),
+      dep: formatMontant(totalCaisseD, devise),
+      solde: formatMontant(totalCaisseR - totalCaisseD, devise),
+      cumul: formatMontant(totalCaisseR - totalCaisseD, devise),
+      __docs: [] as string[],
+    },
+  ];
+
   const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
   // Vue annuelle : on regroupe les documents de tous les mois de l'année.
