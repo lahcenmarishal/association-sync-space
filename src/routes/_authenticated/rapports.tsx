@@ -429,11 +429,12 @@ function RapportsPage() {
               (row["type"] === tr("Total") || row["date"] === tr("Total"));
             const variante = estTotal
               ? ("total" as const)
-              : row["type"] === tr("Recette") || row["type"] === tr("Rechargement caisse")
-                ? ("recette" as const)
-                : row["type"] === tr("Dépense")
-                  ? ("depense" as const)
-                  : null;
+              : ((row["__variante"] as "recette" | "depense" | "total" | undefined) ??
+                  (row["type"] === tr("Recette")
+                    ? ("recette" as const)
+                    : row["type"] === tr("Dépense")
+                      ? ("depense" as const)
+                      : null));
             lignes.push({
               cellules: columns.map((c) => String(row[c.key] ?? "—")),
               documents: await resoudre((row["__docs"] as string[] | undefined) ?? []),
