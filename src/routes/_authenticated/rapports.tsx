@@ -340,87 +340,48 @@ function RapportsPage() {
 
   const completExportColumns = completColumns.filter((column) => column.key !== "solde");
 
-  // Caisse quotidienne : rechargements de caisse (crédit) et dépenses en espèces (débit),
-  // détaillés opération par opération.
-  const caisseLignes = useMemo(() => {
-    const recharges = rechargesDeCaisses(caisses, inPeriod).map((c) => ({
-      date: c.date,
-      type: tr("Rechargement caisse"),
-      nom: "—",
-      tiers: "—",
-      piece: "—",
-      paiement: tr(MOYENS_LABELS["especes"] ?? "especes"),
-      description: "—",
-      rec: Number(c.montant),
-      dep: 0,
-      docs: [] as string[],
-    }));
-    const cash = d
-      .filter((x) => EST_ESPECES(x.moyen_paiement))
-      .map((x) => ({
-        date: x.date,
-        type: tr("Dépense"),
-        nom: catName(x.categorie_id),
-        tiers: x.fournisseur || "—",
-        piece: x.numero_cheque || "—",
-        paiement: tr(MOYENS_LABELS[x.moyen_paiement] ?? x.moyen_paiement),
-        description: x.description || "—",
-        rec: 0,
-        dep: Number(x.montant),
-        docs: docsDesOperations([x]),
-      }));
-    const toutes = [...recharges, ...cash].sort((a, b) => a.date.localeCompare(b.date));
-    let cumul = 0;
-    return toutes.map((l) => {
-      cumul += l.rec - l.dep;
-      return { ...l, cumul };
-    });
+  // Caisse quotidienne : la caisse est rechargée (montant initial des caisses)
+  // puis dépensée en espèces — un jour par ligne, avec solde cumulé.
+  const joursCaisse = useMemo(
+    () =>
+      caisseParJour(rechargesDeCaisses(caisses, inPeriod), d, (ops) =>
+        docsDesOperations(ops as { pieces_jointes?: unknown; justificatif?: unknown }[]),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [caisses, d, categories, annee, mois]);
+    [caisses, d, annee, mois],
+  );
 
   const caisseColumns = [
     { header: tr("Date"), key: "date" },
-    { header: tr("Type"), key: "type" },
-    { header: tr("Catégorie"), key: "nom" },
-    { header: tr("Bénéficiaire / Source"), key: "tiers" },
-    { header: tr("N° facture / chèque"), key: "piece" },
-    { header: tr("Paiement"), key: "paiement" },
-    { header: tr("Description"), key: "description" },
+    { header: tr("Nombre d'opérations"), key: "nb" },
     { header: tr("Rechargement caisse"), key: "rec" },
-    { header: tr("Dépenses"), key: "dep" },
+    { header: tr("Dépenses en espèces"), key: "dep" },
     { header: tr("Solde cumulé"), key: "cumul" },
   ];
-  const totalCaisseR = caisseLignes.reduce((t, l) => t + l.rec, 0);
-  const totalCaisseD = caisseLignes.reduce((t, l) => t + l.dep, 0);
+  const totalCaisseR = joursCaisse.reduce((t, j) => t + j.recettes, 0);
+  const totalCaisseD = joursCaisse.reduce((t, j) => t + j.depenses, 0);
   const caisseRows = [
-    ...caisseLignes.map((l) => ({
-      date: formatDate(l.date),
-      type: l.type,
-      nom: l.nom,
-      tiers: l.tiers,
-      piece: l.piece,
-      paiement: l.paiement,
-      description: l.description,
-      rec: l.rec ? formatMontant(l.rec, devise) : "—",
-      dep: l.dep ? formatMontant(l.dep, devise) : "—",
-      cumul: formatMontant(l.cumul, devise),
-      __docs: l.docs,
+    ...joursCaisse.map((j) => ({
+      date: formatDate(j.date),
+      nb: String(j.nb),
+      rec: j.recettes ? formatMontant(j.recettes, devise) : "—",
+      dep: j.depenses ? formatMontant(j.depenses, devise) : "—",
+      cumul: formatMontant(j.cumul, devise),
+      __docs: j.docs,
+      __variante: j.recettes >= j.depenses ? "recette" : "depense",
     })),
     {
       date: tr("Total"),
-      type: `${caisseLignes.length} ${tr("opération(s)")}`,
-      nom: "—",
-      tiers: "—",
-      piece: "—",
-      paiement: "—",
-      description: "—",
+      nb: String(joursCaisse.reduce((t, j) => t + j.nb, 0)),
       rec: formatMontant(totalCaisseR, devise),
       dep: formatMontant(totalCaisseD, devise),
       cumul: formatMontant(totalCaisseR - totalCaisseD, devise),
       __docs: [] as string[],
+      __variante: "total",
     },
   ];
   const caisseResume: [string, string][] = [
+    ["عدد الأيام", String(joursCaisse.length)],
     ["مجموع تعبئة الصندوق", formatMontant(totalCaisseR, devise)],
     ["مجموع المصاريف نقدا", formatMontant(totalCaisseD, devise)],
     ["الرصيد المتبقي بالصندوق", formatMontant(totalCaisseR - totalCaisseD, devise)],
