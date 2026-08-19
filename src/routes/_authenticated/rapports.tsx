@@ -387,6 +387,91 @@ function RapportsPage() {
     ["الرصيد المتبقي بالصندوق", formatMontant(totalCaisseR - totalCaisseD, devise)],
   ];
 
+  // Rapport d'une seule caisse : rechargement initial puis dépenses en espèces
+  // rattachées à cette caisse, opération par opération.
+  const caissesPeriode = useMemo(
+    () =>
+      caisses
+        .filter((c) => inPeriod(c.date))
+        .slice()
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [caisses, annee, mois],
+  );
+  const [caisseId, setCaisseId] = useState("");
+  const caisseSel = caissesPeriode.find((c) => c.id === caisseId) ?? caissesPeriode[0];
+
+  const uneCaisseColumns = [
+    { header: tr("Date"), key: "date" },
+    { header: tr("Type"), key: "type" },
+    { header: tr("Catégorie"), key: "nom" },
+    { header: tr("Bénéficiaire / Source"), key: "tiers" },
+    { header: tr("N° facture / chèque"), key: "piece" },
+    { header: tr("Paiement"), key: "paiement" },
+    { header: tr("Description"), key: "description" },
+    { header: tr("Rechargement caisse"), key: "rec" },
+    { header: tr("Dépenses en espèces"), key: "dep" },
+  ];
+
+  const uneCaisseDepenses = caisseSel
+    ? depenses.filter((x) => x.caisse_id === caisseSel.id && (x.moyen_paiement ?? "") === "especes")
+    : [];
+  const uneCaisseInitial = Number(caisseSel?.montant_initial ?? 0);
+  const uneCaisseTotalD = uneCaisseDepenses.reduce((t, x) => t + Number(x.montant), 0);
+
+  const uneCaisseRows = caisseSel
+    ? [
+        {
+          date: formatDate(caisseSel.date),
+          type: tr("Rechargement caisse"),
+          nom: "—",
+          tiers: "—",
+          piece: "—",
+          paiement: tr(MOYENS_LABELS["especes"] ?? "especes"),
+          description: caisseSel.observation ?? "—",
+          rec: formatMontant(uneCaisseInitial, devise),
+          dep: "—",
+          __docs: [] as string[],
+          __variante: "recette",
+        },
+        ...uneCaisseDepenses.map((x) => ({
+          date: formatDate(x.date),
+          type: tr("Dépense"),
+          nom: catName(x.categorie_id),
+          tiers: x.fournisseur || "—",
+          piece: x.numero_cheque || "—",
+          paiement: tr(MOYENS_LABELS[x.moyen_paiement] ?? x.moyen_paiement),
+          description: x.description ?? "—",
+          rec: "—",
+          dep: formatMontant(x.montant, devise),
+          __docs: docsDesOperations([x]),
+          __variante: "depense",
+        })),
+        {
+          date: tr("Total"),
+          type: `${uneCaisseDepenses.length + 1} ${tr("opération(s)")}`,
+          nom: "—",
+          tiers: "—",
+          piece: "—",
+          paiement: "—",
+          description: "—",
+          rec: formatMontant(uneCaisseInitial, devise),
+          dep: formatMontant(uneCaisseTotalD, devise),
+          __docs: [] as string[],
+          __variante: "total",
+        },
+      ]
+    : [];
+
+  const uneCaisseResume: [string, string][] = [
+    ["تاريخ الصندوق", caisseSel ? formatDate(caisseSel.date) : "—"],
+    ["تعبئة الصندوق", formatMontant(uneCaisseInitial, devise)],
+    ["مجموع المصاريف نقدا", formatMontant(uneCaisseTotalD, devise)],
+    ["الرصيد المتبقي بالصندوق", formatMontant(uneCaisseInitial - uneCaisseTotalD, devise)],
+  ];
+
+
+
 
   const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
