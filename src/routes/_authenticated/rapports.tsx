@@ -810,6 +810,42 @@ function RapportsPage() {
           <SimpleTable columns={caisseColumns} rows={caisseRows} />
         </TabsContent>
 
+        <TabsContent value="une-caisse">
+          <div className="mb-3 max-w-xs">
+            <Label>{tr("Caisse")}</Label>
+            <Select value={caisseSel?.id ?? ""} onValueChange={setCaisseId}>
+              <SelectTrigger>
+                <SelectValue placeholder={tr("Choisir une caisse")} />
+              </SelectTrigger>
+              <SelectContent>
+                {caissesPeriode.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {tr("Caisse du")} {formatDate(c.date)} — {formatMontant(c.montant_initial, devise)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {caisseSel ? (
+            <>
+              <ExportButtons
+                name={`caisse-${caisseSel.date}`}
+                titre={`${tr("Caisse du")} ${formatDate(caisseSel.date)}`}
+                titreAr={`تقرير صندوق ${formatDate(caisseSel.date)}`}
+                columns={uneCaisseColumns}
+                rows={uneCaisseRows}
+                resume={uneCaisseResume}
+              />
+              <SimpleTable columns={uneCaisseColumns} rows={uneCaisseRows} />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {tr("Aucune caisse pour cette période.")}
+            </p>
+          )}
+        </TabsContent>
+
+
         <TabsContent value="activites">
           <ExportButtons
             name={`activites-${annee}`}
