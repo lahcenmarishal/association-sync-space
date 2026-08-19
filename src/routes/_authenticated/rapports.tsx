@@ -744,6 +744,8 @@ function RapportsPage() {
             <TabsTrigger value="bilan">{tr("Bilan mensuel")}</TabsTrigger>
             <TabsTrigger value="categories">{tr("Par catégorie")}</TabsTrigger>
             <TabsTrigger value="caisse">{tr("Caisse quotidienne")}</TabsTrigger>
+            <TabsTrigger value="une-caisse">{tr("Caisse détaillée")}</TabsTrigger>
+
             <TabsTrigger value="activites">{tr("Activités")}</TabsTrigger>
           </TabsList>
         </div>
