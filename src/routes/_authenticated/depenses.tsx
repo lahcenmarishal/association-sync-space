@@ -120,9 +120,13 @@ function DepensesPage() {
   const catName = (id: string | null) =>
     categories.find((c) => c.id === id)?.nom ?? t("Sans catégorie");
 
+  // Les dépenses rattachées à une caisse quotidienne sont suivies dans le
+  // rapport de caisse : elles sont exclues de cette page.
+  const horsCaisse = useMemo(() => depenses.filter((d) => !d.caisse_id), [depenses]);
+
   const filtered = useMemo(
     () =>
-      depenses.filter((d) =>
+      horsCaisse.filter((d) =>
         matchFilters(
           {
             date: d.date,
@@ -134,8 +138,9 @@ function DepensesPage() {
           filters,
         ),
       ),
-    [depenses, filters, categories],
+    [horsCaisse, filters, categories],
   );
+
 
   const total = filtered.reduce((t, d) => t + Number(d.montant), 0);
   const { slice, page, totalPages, setPage } = usePagination(filtered, 10);
