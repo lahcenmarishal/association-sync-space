@@ -201,11 +201,11 @@ const nomFichier = (titre: string) =>
 const nomSur = (v: string, max = 70) =>
   (v.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim().slice(0, max) || "sans_titre");
 
-/** Télécharge directement le rapport arabe en PDF (avec les justificatifs). */
+/** Télécharge le rapport arabe en PDF (sans les documents joints). */
 export async function telechargerRapportPdf(rapport: RapportWeb) {
   const { telechargerHtmlPdf } = await import("@/lib/html-pdf");
   await telechargerHtmlPdf({
-    html: corpsHtml(rapport, false),
+    html: corpsHtml(rapport, false, false),
     css: PDF_CSS,
     filename: nomFichier(rapport.titre),
     dir: "rtl",
@@ -296,7 +296,7 @@ ${corpsHtml(rapport, true)}
 </body></html>`;
 
   (window as unknown as { __telechargerRapportPdf?: () => Promise<void> }).__telechargerRapportPdf =
-    () => telechargerRapportZip(rapport);
+    () => telechargerRapportPdf(rapport);
 
   const win = window.open("", "_blank");
   if (!win) return;
