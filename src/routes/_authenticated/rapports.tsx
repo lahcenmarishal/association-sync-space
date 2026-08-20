@@ -97,12 +97,17 @@ function RapportsPage() {
   const inPeriod = (date: string) =>
     date.startsWith(annee) && (mois === "all" || date.slice(5, 7) === mois);
 
+  // Les dépenses rattachées à une caisse quotidienne restent uniquement dans
+  // les rapports de caisse : elles sont exclues des rapports financiers.
+  const depensesHorsCaisse = useMemo(() => depenses.filter((x) => !x.caisse_id), [depenses]);
+
   const r = recettes.filter((x) => inPeriod(x.date));
-  const d = depenses.filter((x) => inPeriod(x.date));
+  const dTous = depenses.filter((x) => inPeriod(x.date));
+  const d = dTous.filter((x) => !x.caisse_id);
   const totalR = r.reduce((t, x) => t + Number(x.montant), 0);
   const totalD = d.reduce((t, x) => t + Number(x.montant), 0);
   const debutPeriode = `${annee}-${mois === "all" ? "01" : mois}-01`;
-  const soldePrecedent = soldeAvant(recettes, depenses, debutPeriode);
+  const soldePrecedent = soldeAvant(recettes, depensesHorsCaisse, debutPeriode);
 
   const catName = (id: string | null) =>
     categories.find((c) => c.id === id)?.nom ?? tr("Sans catégorie");
@@ -122,7 +127,7 @@ function RapportsPage() {
         .map((i) => {
         const prefix = `${annee}-${String(i + 1).padStart(2, "0")}`;
         const recOps = recettes.filter((x) => x.date.startsWith(prefix));
-        const depOps = depenses.filter((x) => x.date.startsWith(prefix));
+        const depOps = depensesHorsCaisse.filter((x) => x.date.startsWith(prefix));
         const rec = recOps.reduce((t, x) => t + Number(x.montant), 0);
         const dep = depOps.reduce((t, x) => t + Number(x.montant), 0);
         const docs = [
@@ -131,7 +136,7 @@ function RapportsPage() {
         ];
         return { mois: tr(monthLabel(i) ?? ""), Recettes: rec, Dépenses: dep, Solde: rec - dep, docs };
       }),
-    [recettes, depenses, rapportsDocs, annee, mois],
+    [recettes, depensesHorsCaisse, rapportsDocs, annee, mois],
   );
 
   const parCategorie = useMemo(() => {
@@ -344,11 +349,11 @@ function RapportsPage() {
   // puis dépensée en espèces — un jour par ligne, avec solde cumulé.
   const joursCaisse = useMemo(
     () =>
-      caisseParJour(rechargesDeCaisses(caisses, inPeriod), d, (ops) =>
+      caisseParJour(rechargesDeCaisses(caisses, inPeriod), dTous, (ops) =>
         docsDesOperations(ops as { pieces_jointes?: unknown; justificatif?: unknown }[]),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [caisses, d, annee, mois],
+    [caisses, dTous, annee, mois],
   );
 
   const caisseColumns = [
