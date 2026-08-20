@@ -120,13 +120,11 @@ function DepensesPage() {
   const catName = (id: string | null) =>
     categories.find((c) => c.id === id)?.nom ?? t("Sans catégorie");
 
-  // Les dépenses rattachées à une caisse quotidienne sont suivies dans le
-  // rapport de caisse : elles sont exclues de cette page.
-  const horsCaisse = useMemo(() => depenses.filter((d) => !d.caisse_id), [depenses]);
+  const caisseLabel = (id: string | null) => (id ? t("Dans caisse") : t("Hors caisse"));
 
   const filtered = useMemo(
     () =>
-      horsCaisse.filter((d) =>
+      depenses.filter((d) =>
         matchFilters(
           {
             date: d.date,
@@ -138,12 +136,17 @@ function DepensesPage() {
           filters,
         ),
       ),
-    [horsCaisse, filters, categories],
+    [depenses, filters, categories],
   );
 
+  // Le rapport généré ne contient que les dépenses hors caisse : celles
+  // rattachées à une caisse restent suivies dans le rapport de caisse.
+  const filtreesHorsCaisse = useMemo(() => filtered.filter((d) => !d.caisse_id), [filtered]);
 
   const total = filtered.reduce((t, d) => t + Number(d.montant), 0);
+  const totalHorsCaisse = filtreesHorsCaisse.reduce((t, d) => t + Number(d.montant), 0);
   const { slice, page, totalPages, setPage } = usePagination(filtered, 10);
+
 
   const openNew = () => {
     setEditing(null);
@@ -215,10 +218,10 @@ function DepensesPage() {
 
       const onExport = async () => {
       const toastId = toast.loading(t("Génération du rapport…"));
-      const debut = filtered.map((x) => x.date).sort()[0];
+      const debut = filtreesHorsCaisse.map((x) => x.date).sort()[0];
       const soldePrec = soldeAvant(toutesRecettes, depenses, debut);
       const lignes = [];
-      for (const d of filtered) {
+      for (const d of filtreesHorsCaisse) {
         const documents = await resoudreDocuments(
           toPiecesJointes(d.pieces_jointes ?? d.justificatif),
         );
@@ -238,13 +241,13 @@ function DepensesPage() {
       }
       ouvrirRapportWeb({
         titre: "تقرير المصاريف",
-        sousTitre: `${filtered.length} عملية — المجموع ${formatMontant(total, devise)}`,
+        sousTitre: `${filtreesHorsCaisse.length} عملية — المجموع ${formatMontant(totalHorsCaisse, devise)}`,
         association: params?.nom_association ?? "جمعية الذهاب للماء الصالح للشرب والتنمية والتعاون",
         resume: [
           ["الرصيد السابق", formatMontant(soldePrec, devise)],
-          ["عدد العمليات", String(filtered.length)],
-          ["مجموع المصاريف", formatMontant(total, devise)],
-          ["الرصيد الحالي", formatMontant(soldePrec - total, devise)],
+          ["عدد العمليات", String(filtreesHorsCaisse.length)],
+          ["مجموع المصاريف", formatMontant(totalHorsCaisse, devise)],
+          ["الرصيد الحالي", formatMontant(soldePrec - totalHorsCaisse, devise)],
         ],
         entetes: ["التاريخ", "الصنف", "المستفيد", "رقم الشيك", "المبلغ", "طريقة الأداء", "البيان"],
         lignes,
@@ -288,6 +291,7 @@ function DepensesPage() {
               <TableHead>{t("N° chèque")}</TableHead>
               <TableHead className="text-right">{t("Montant")}</TableHead>
               <TableHead>{t("Paiement")}</TableHead>
+              <TableHead>{t("Caisse")}</TableHead>
               <TableHead>{t("Justificatif")}</TableHead>
               <TableHead className="text-right">{t("Actions")}</TableHead>
             </TableRow>
@@ -295,14 +299,14 @@ function DepensesPage() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   {t("Chargement…")}
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && slice.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   {t("Aucune dépense trouvée.")}
                 </TableCell>
               </TableRow>
@@ -319,6 +323,17 @@ function DepensesPage() {
                   {formatMontant(d.montant, devise)}
                 </TableCell>
                 <TableCell>{t(MOYENS_LABELS[d.moyen_paiement] ?? d.moyen_paiement)}</TableCell>
+                <TableCell>
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                      d.caisse_id
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {caisseLabel(d.caisse_id)}
+                  </span>
+                </TableCell>
                 <TableCell>
                   {toPiecesJointes(d.pieces_jointes ?? d.justificatif).length ? (
                     <button
