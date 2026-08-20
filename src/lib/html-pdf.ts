@@ -117,47 +117,63 @@ export async function telechargerHtmlPdf(options: {
 
     const { jsPDF } = await import("jspdf");
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    const pxPerMm = canvas.width / A4_W_MM;
-    const pageHeightPx = Math.floor(A4_H_MM * pxPerMm);
-    const pages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
+    const pxPerMm = PAGE_W_PX / A4_W_MM; // en px CSS
+    const pageHeightCssPx = Math.floor(A4_H_MM * pxPerMm);
 
-    for (let i = 0; i < pages; i++) {
-      const sliceHeight = Math.min(pageHeightPx, canvas.height - i * pageHeightPx);
+    // Points de coupure « sûrs » : bas des lignes de tableau et des blocs, afin
+    // de ne jamais trancher une ligne en deux (ce qui produisait une bande noire).
+    const stops = Array.from(
+      content.querySelectorAll("tr, .carte, .annexe-bloc, .liens-index li, figure, footer, header, h2, p"),
+    )
+      .map((el) => el.getBoundingClientRect().bottom - base.top)
+      .filter((y) => y > 0 && y < height)
+      .sort((a, b) => a - b);
+
+    // Découpage en pages
+    const cuts: { top: number; bottom: number }[] = [];
+    let cur = 0;
+    while (cur < height - 1) {
+      const limit = cur + pageHeightCssPx;
+      if (limit >= height) {
+        cuts.push({ top: cur, bottom: height });
+        break;
+      }
+      const safe = stops.filter((y) => y > cur + pageHeightCssPx * 0.3 && y <= limit).pop();
+      const bottom = safe ?? limit;
+      cuts.push({ top: cur, bottom });
+      cur = bottom;
+    }
+
+    cuts.forEach((c, i) => {
+      const sliceHeightCss = c.bottom - c.top;
       const slice = document.createElement("canvas");
       slice.width = canvas.width;
-      slice.height = sliceHeight;
+      slice.height = Math.round(sliceHeightCss * scale);
       const sctx = slice.getContext("2d")!;
       sctx.fillStyle = "#fff";
       sctx.fillRect(0, 0, slice.width, slice.height);
-      sctx.drawImage(canvas, 0, -i * pageHeightPx);
+      sctx.drawImage(canvas, 0, -Math.round(c.top * scale));
       if (i > 0) pdf.addPage();
-      pdf.addImage(
-        slice.toDataURL("image/jpeg", 0.92),
-        "JPEG",
-        0,
-        0,
-        A4_W_MM,
-        (sliceHeight / pxPerMm),
-      );
+      pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, A4_W_MM, sliceHeightCss / pxPerMm);
+    });
+
+    // Zones cliquables : positionnées sur la page qui contient le lien.
+    for (const l of liens) {
+      cuts.forEach((c, p) => {
+        const top = Math.max(l.y, c.top);
+        const bottom = Math.min(l.y + l.h, c.bottom);
+        if (bottom - top < 1) return;
+        pdf.setPage(p + 1);
+        pdf.link(
+          l.x / pxPerMm,
+          (top - c.top) / pxPerMm,
+          l.w / pxPerMm,
+          (bottom - top) / pxPerMm,
+          { url: l.href },
+        );
+      });
     }
 
-    // Zones cliquables : un lien peut chevaucher deux pages, on l'ajoute sur chacune.
-    const cssPxPerMm = PAGE_W_PX / A4_W_MM;
-    const pageHeightCssPx = pageHeightPx / scale;
-    for (const l of liens) {
-      const first = Math.floor(l.y / pageHeightCssPx);
-      const last = Math.floor((l.y + l.h) / pageHeightCssPx);
-      for (let p = first; p <= Math.min(last, pages - 1); p++) {
-        if (p < 0) continue;
-        const top = Math.max(l.y, p * pageHeightCssPx) - p * pageHeightCssPx;
-        const bottom = Math.min(l.y + l.h, (p + 1) * pageHeightCssPx) - p * pageHeightCssPx;
-        if (bottom - top < 1) continue;
-        pdf.setPage(p + 1);
-        pdf.link(l.x / cssPxPerMm, top / cssPxPerMm, l.w / cssPxPerMm, (bottom - top) / cssPxPerMm, {
-          url: l.href,
-        });
-      }
-    }
 
 
     if (options.asBlob) return pdf.output("blob") as Blob;
