@@ -239,6 +239,8 @@ export const AR: Record<string, string> = {
     "اختيار ملف سيعوض الوثيقة المثبتة الحالية.",
   "Activité liée": "النشاط المرتبط",
   "Hors caisse": "خارج الصندوق",
+  "Dans caisse": "داخل الصندوق",
+  "Caisse": "الصندوق",
   "Caisse du": "صندوق يوم",
 
   // Activités
