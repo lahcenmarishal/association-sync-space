@@ -277,7 +277,7 @@ function RapportsPage() {
     { header: tr("Statut"), key: "statut" },
   ];
   const actDepense = (id: string) =>
-    depenses.filter((x) => x.activite_id === id).reduce((t, x) => t + Number(x.montant), 0);
+    depensesHorsCaisse.filter((x) => x.activite_id === id).reduce((t, x) => t + Number(x.montant), 0);
   const actRows = [
     ...activitesPeriode.map((a) => ({
       titre: a.titre,
@@ -290,7 +290,7 @@ function RapportsPage() {
       __docs: [
         ...toPiecesJointes(a.photos),
         ...toPiecesJointes(a.documents),
-        ...docsDesOperations(depenses.filter((x) => x.activite_id === a.id)),
+        ...docsDesOperations(depensesHorsCaisse.filter((x) => x.activite_id === a.id)),
       ],
     })),
     {
