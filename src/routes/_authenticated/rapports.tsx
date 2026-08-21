@@ -383,39 +383,86 @@ function RapportsPage() {
 
   const caisseColumns = [
     { header: tr("Date"), key: "date" },
-    { header: tr("Nombre d'opérations"), key: "nb" },
+    { header: tr("Type"), key: "type" },
+    { header: tr("Catégorie"), key: "nom" },
+    { header: tr("Bénéficiaire / Source"), key: "tiers" },
+    { header: tr("N° facture / chèque"), key: "piece" },
+    { header: tr("Paiement"), key: "paiement" },
+    { header: tr("Description"), key: "description" },
     { header: tr("Rechargement caisse"), key: "rec" },
     { header: tr("Dépenses en espèces"), key: "dep" },
-    { header: tr("Solde cumulé"), key: "cumul" },
   ];
   const totalCaisseR = joursCaisse.reduce((t, j) => t + j.recettes, 0);
   const totalCaisseD = joursCaisse.reduce((t, j) => t + j.depenses, 0);
+
+  // Détail opération par opération : chaque caisse de la période avec son
+  // rechargement puis ses dépenses en espèces.
+  const caisseDetailRows = useMemo(() => {
+    const rows: Record<string, unknown>[] = [];
+    const list = caisses
+      .filter((c) => inPeriod(c.date))
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date));
+    for (const c of list) {
+      if (Number(c.montant_initial) > 0) {
+        rows.push({
+          date: formatDate(c.date),
+          type: tr("Rechargement caisse"),
+          nom: "—",
+          tiers: "—",
+          piece: "—",
+          paiement: tr(MOYENS_LABELS["especes"] ?? "especes"),
+          description: c.observation ?? "—",
+          rec: formatMontant(c.montant_initial, devise),
+          dep: "—",
+          __docs: [] as string[],
+          __variante: "recette",
+        });
+      }
+      for (const x of depenses.filter(
+        (d) => d.caisse_id === c.id && (d.moyen_paiement ?? "") === "especes",
+      )) {
+        rows.push({
+          date: formatDate(x.date),
+          type: tr("Dépense"),
+          nom: catName(x.categorie_id),
+          tiers: x.fournisseur || "—",
+          piece: x.numero_cheque || "—",
+          paiement: tr(MOYENS_LABELS[x.moyen_paiement] ?? x.moyen_paiement),
+          description: x.description ?? "—",
+          rec: "—",
+          dep: formatMontant(x.montant, devise),
+          __docs: docsDesOperations([x]),
+          __variante: "depense",
+        });
+      }
+    }
+    return rows;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caisses, depenses, annee, mois, devise]);
+
   const caisseRows = [
-    ...joursCaisse.map((j) => ({
-      date: formatDate(j.date),
-      nb: String(j.nb),
-      rec: j.recettes ? formatMontant(j.recettes, devise) : "—",
-      dep: j.depenses ? formatMontant(j.depenses, devise) : "—",
-      cumul: formatMontant(j.cumul, devise),
-      __docs: j.docs,
-      __variante: j.recettes >= j.depenses ? "recette" : "depense",
-    })),
+    ...caisseDetailRows,
     {
       date: tr("Total"),
-      nb: String(joursCaisse.reduce((t, j) => t + j.nb, 0)),
+      type: `${caisseDetailRows.length} ${tr("opération(s)")}`,
+      nom: "—",
+      tiers: "—",
+      piece: "—",
+      paiement: "—",
+      description: "—",
       rec: formatMontant(totalCaisseR, devise),
       dep: formatMontant(totalCaisseD, devise),
-      cumul: formatMontant(totalCaisseR - totalCaisseD, devise),
       __docs: [] as string[],
       __variante: "total",
     },
   ];
   const caisseResume: [string, string][] = [
-    ["عدد الأيام", String(joursCaisse.length)],
     ["مجموع تعبئة الصندوق", formatMontant(totalCaisseR, devise)],
     ["مجموع المصاريف نقدا", formatMontant(totalCaisseD, devise)],
     ["الرصيد المتبقي بالصندوق", formatMontant(totalCaisseR - totalCaisseD, devise)],
   ];
+
 
   // Rapport d'une seule caisse : rechargement initial puis dépenses en espèces
   // rattachées à cette caisse, opération par opération.
