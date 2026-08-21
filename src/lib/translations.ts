@@ -355,6 +355,7 @@ export const AR: Record<string, string> = {
 
   // Rapports
   "Toute l'année": "السنة كاملة",
+  "Toutes les années": "كل السنوات",
   "Bilan mensuel": "الحصيلة الشهرية",
   "Par catégorie": "حسب الفئة",
   "Aucune donnée sur la période.": "لا توجد معطيات في هذه الفترة.",
