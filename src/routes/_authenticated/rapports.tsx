@@ -93,9 +93,10 @@ function RapportsPage() {
   const years = Array.from({ length: 6 }, (_, i) => String(new Date().getFullYear() - i));
   const [annee, setAnnee] = useState(years[0]!);
   const [mois, setMois] = useState("all");
+  const toutesAnnees = annee === "all";
 
   const inPeriod = (date: string) =>
-    date.startsWith(annee) && (mois === "all" || date.slice(5, 7) === mois);
+    (toutesAnnees || date.startsWith(annee)) && (mois === "all" || date.slice(5, 7) === mois);
 
   // Les dépenses rattachées à une caisse quotidienne restent uniquement dans
   // les rapports de caisse : elles sont exclues des rapports financiers.
@@ -106,7 +107,9 @@ function RapportsPage() {
   const d = dTous.filter((x) => !x.caisse_id);
   const totalR = r.reduce((t, x) => t + Number(x.montant), 0);
   const totalD = d.reduce((t, x) => t + Number(x.montant), 0);
-  const debutPeriode = `${annee}-${mois === "all" ? "01" : mois}-01`;
+  const debutPeriode = toutesAnnees
+    ? "0000-01-01"
+    : `${annee}-${mois === "all" ? "01" : mois}-01`;
   const soldePrecedent = soldeAvant(recettes, depensesHorsCaisse, debutPeriode);
 
   const catName = (id: string | null) =>
@@ -120,11 +123,33 @@ function RapportsPage() {
       ...toPiecesJointes(o.justificatif),
     ]);
 
-  const parMois = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => i)
-        .filter((i) => mois === "all" || String(i + 1).padStart(2, "0") === mois)
-        .map((i) => {
+  const parMois = useMemo(() => {
+    // « Toutes les années » : une ligne par année au lieu d'une ligne par mois.
+    if (toutesAnnees) {
+      const annees = Array.from(
+        new Set(
+          [...recettes, ...depensesHorsCaisse]
+            .filter((x) => mois === "all" || x.date.slice(5, 7) === mois)
+            .map((x) => x.date.slice(0, 4)),
+        ),
+      ).sort();
+      return annees.map((y) => {
+        const keep = (x: { date: string }) =>
+          x.date.startsWith(y) && (mois === "all" || x.date.slice(5, 7) === mois);
+        const recOps = recettes.filter(keep);
+        const depOps = depensesHorsCaisse.filter(keep);
+        const rec = recOps.reduce((t, x) => t + Number(x.montant), 0);
+        const dep = depOps.reduce((t, x) => t + Number(x.montant), 0);
+        const docs = [
+          ...docsDesOperations([...recOps, ...depOps]),
+          ...rapportsDocs.filter((doc) => doc.periode.startsWith(y)).map((doc) => doc.chemin),
+        ];
+        return { mois: y, Recettes: rec, Dépenses: dep, Solde: rec - dep, docs };
+      });
+    }
+    return Array.from({ length: 12 }, (_, i) => i)
+      .filter((i) => mois === "all" || String(i + 1).padStart(2, "0") === mois)
+      .map((i) => {
         const prefix = `${annee}-${String(i + 1).padStart(2, "0")}`;
         const recOps = recettes.filter((x) => x.date.startsWith(prefix));
         const depOps = depensesHorsCaisse.filter((x) => x.date.startsWith(prefix));
@@ -135,9 +160,9 @@ function RapportsPage() {
           ...rapportsDocs.filter((doc) => doc.periode === prefix).map((doc) => doc.chemin),
         ];
         return { mois: tr(monthLabel(i) ?? ""), Recettes: rec, Dépenses: dep, Solde: rec - dep, docs };
-      }),
-    [recettes, depensesHorsCaisse, rapportsDocs, annee, mois],
-  );
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recettes, depensesHorsCaisse, rapportsDocs, annee, mois, toutesAnnees]);
 
   const parCategorie = useMemo(() => {
     const map = new Map<string, { nom: string; type: string; total: number; nb: number; docs: string[] }>();
@@ -478,11 +503,17 @@ function RapportsPage() {
 
 
 
-  const periodeLabel = `${annee}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
+  const anneeNom = toutesAnnees ? tr("Toutes les années") : annee;
+  const anneeFichier = toutesAnnees ? "toutes-annees" : annee;
+  const periodeLabel = `${anneeNom}${mois === "all" ? "" : ` — ${tr("mois")} ${mois}`}`;
   const periodeKey = mois === "all" ? annee : `${annee}-${mois}`;
   // Vue annuelle : on regroupe les documents de tous les mois de l'année.
   const docsPeriode = rapportsDocs.filter((doc) =>
-    mois === "all" ? doc.periode === annee || doc.periode.startsWith(`${annee}-`) : doc.periode === periodeKey,
+    toutesAnnees
+      ? mois === "all" || doc.periode.slice(5, 7) === mois
+      : mois === "all"
+        ? doc.periode === annee || doc.periode.startsWith(`${annee}-`)
+        : doc.periode === periodeKey,
   );
 
   const ExportButtons = ({
@@ -606,6 +637,7 @@ function RapportsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">{tr("Toutes les années")}</SelectItem>
               {years.map((y) => (
                 <SelectItem key={y} value={y}>
                   {y}
@@ -770,8 +802,8 @@ function RapportsPage() {
 
         <TabsContent value="bilan">
           <ExportButtons
-            name={`bilan-${annee}`}
-            titre={`${tr("Bilan financier")} ${annee}`}
+            name={`bilan-${anneeFichier}`}
+            titre={`${tr("Bilan financier")} ${anneeNom}`}
             titreAr="الحصيلة المالية"
             columns={bilanColumns}
             rows={bilanRows}
@@ -794,7 +826,7 @@ function RapportsPage() {
 
         <TabsContent value="categories">
           <ExportButtons
-            name={`categories-${annee}`}
+            name={`categories-${anneeFichier}`}
             titre={tr("Rapport par catégorie")}
             titreAr="التقرير حسب الأصناف"
             columns={catColumns}
@@ -853,7 +885,7 @@ function RapportsPage() {
 
         <TabsContent value="activites">
           <ExportButtons
-            name={`activites-${annee}`}
+            name={`activites-${anneeFichier}`}
             titre={tr("Rapport des activités")}
             titreAr="تقرير الأنشطة"
             columns={actColumns}
