@@ -140,7 +140,86 @@ const PDF_CSS = `${CSS}
   th, td { font-size: 11px; padding: 6px 7px; }
   header h1 { font-size: 20px; }
   .annexe-grille figure { width: 240px; }
+
+  /* ---- Page de couverture : statistiques générales plein page ---- */
+  .couverture { height: 1123px; padding: 40px 34px; display: flex; flex-direction: column; }
+  .couverture header { padding: 28px 30px; border-radius: 20px; }
+  .couverture header img { width: 110px; height: 110px; }
+  .couverture header h1 { font-size: 36px; margin-bottom: 10px; }
+  .couverture header p { font-size: 20px; }
+  .couverture .cv-titre { font-size: 30px; font-weight: 800; color: #0e7c7b; text-align: center; margin: 30px 0 20px; }
+  .couverture .resume { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; align-content: center; margin: 0; }
+  .couverture .carte { border: 2px solid #0e7c7b; border-radius: 20px; padding: 22px 16px; display: flex; flex-direction: column; justify-content: center; }
+  .couverture .carte .valeur { font-size: 40px; }
+  .couverture .carte .label { font-size: 20px; margin-top: 10px; }
+  .couverture footer { text-align: center; font-size: 15px; margin-top: 24px; }
+
+  /* ---- Pages de tableau ---- */
+  .page-tab { height: 1123px; padding: 26px 22px; display: flex; flex-direction: column; }
+  .page-tab .tab-titre { font-size: 18px; font-weight: 700; color: #0e7c7b; margin: 0 0 10px; }
+  .page-tab table { border-radius: 10px; }
+  .page-tab th { font-size: 12px; padding: 8px 7px; }
+  .page-tab td { font-size: 11px; padding: 6px 7px; }
+  .page-tab .pied { margin-top: auto; font-size: 12px; color: #557; display: flex; justify-content: space-between; }
 `;
+
+const LIGNES_PAGE_2 = 26;
+const LIGNES_PAGE_SUITE = 28;
+
+function ligneHtml(l: RapportLigne) {
+  return `<tr class="${l.variante ?? ""}">${l.cellules.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`;
+}
+
+/** Construit les pages du PDF : 1 page de stats + pages de 26 puis 28 lignes. */
+function pagesPdf(rapport: RapportWeb): string[] {
+  const resume = rapport.resume
+    .map(
+      ([label, valeur]) =>
+        `<div class="carte"><div class="valeur">${esc(valeur)}</div><div class="label">${esc(label)}</div></div>`,
+    )
+    .join("");
+
+  const couverture = `<div class="page couverture">
+  <header>
+    <img src="${esc(logoEddahab)}" alt="" crossorigin="anonymous" />
+    <div>
+      <h1>${esc(rapport.titre)}</h1>
+      <p>${esc(rapport.association)}${rapport.sousTitre ? ` — ${esc(rapport.sousTitre)}` : ""}</p>
+    </div>
+  </header>
+  <div class="cv-titre">إحصائيات عامة</div>
+  <div class="resume">${resume}</div>
+  <footer>التاريخ : ${new Date().toLocaleDateString("ar-MA")}</footer>
+</div>`;
+
+  // Découpage des lignes : 26 sur la première page de tableau, 28 ensuite.
+  const groupes: RapportLigne[][] = [];
+  let i = 0;
+  while (i < rapport.lignes.length) {
+    const taille = groupes.length === 0 ? LIGNES_PAGE_2 : LIGNES_PAGE_SUITE;
+    groupes.push(rapport.lignes.slice(i, i + taille));
+    i += taille;
+  }
+  if (!groupes.length) groupes.push([]);
+
+  const thead = `<thead><tr>${rapport.entetes.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>`;
+
+  const pagesTab = groupes.map(
+    (g, idx) => `<div class="page page-tab">
+  <div class="tab-titre">${esc(rapport.titre)} — تفاصيل العمليات</div>
+  <div class="tableau"><table>${thead}<tbody>${
+      g.map(ligneHtml).join("") ||
+      `<tr><td colspan="${rapport.entetes.length}">لا توجد بيانات</td></tr>`
+    }</tbody></table></div>
+  <div class="pied"><span>${esc(rapport.association)}</span><span>صفحة ${idx + 2} / ${
+      groupes.length + 1
+    }</span></div>
+</div>`,
+  );
+
+  return [couverture, ...pagesTab];
+}
+
 
 function corpsHtml(rapport: RapportWeb, avecBarre: boolean, avecDocuments = true) {
   const entetes = avecDocuments ? [...rapport.entetes, "الوثائق المرفقة"] : rapport.entetes;
@@ -203,9 +282,9 @@ const nomSur = (v: string, max = 70) =>
 
 /** Télécharge le rapport arabe en PDF (sans les documents joints). */
 export async function telechargerRapportPdf(rapport: RapportWeb) {
-  const { telechargerHtmlPdf } = await import("@/lib/html-pdf");
-  await telechargerHtmlPdf({
-    html: corpsHtml(rapport, false, false),
+  const { telechargerHtmlPdfPages } = await import("@/lib/html-pdf");
+  await telechargerHtmlPdfPages({
+    pages: pagesPdf(rapport),
     css: PDF_CSS,
     filename: nomFichier(rapport.titre),
     dir: "rtl",
@@ -217,19 +296,20 @@ export async function telechargerRapportPdf(rapport: RapportWeb) {
  * les documents rangés dans des dossiers portant le titre de chaque opération.
  */
 export async function telechargerRapportZip(rapport: RapportWeb) {
-  const [{ telechargerHtmlPdf }, JSZipMod] = await Promise.all([
+  const [{ telechargerHtmlPdfPages }, JSZipMod] = await Promise.all([
     import("@/lib/html-pdf"),
     import("jszip"),
   ]);
   const JSZip = JSZipMod.default;
 
-  const pdf = (await telechargerHtmlPdf({
-    html: corpsHtml(rapport, false, false),
+  const pdf = (await telechargerHtmlPdfPages({
+    pages: pagesPdf(rapport),
     css: PDF_CSS,
     filename: nomFichier(rapport.titre),
     dir: "rtl",
     asBlob: true,
   })) as Blob;
+
 
   const base = nomSur(rapport.titre, 60);
   const zip = new JSZip();
