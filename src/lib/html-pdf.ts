@@ -218,3 +218,74 @@ export async function telechargerHtmlPdf(options: {
     host.remove();
   }
 }
+
+const PAGE_H_PX = 1123; // A4 à 96 dpi
+
+/**
+ * Génère un PDF où chaque élément de `pages` occupe exactement une page A4.
+ * Utilisé pour maîtriser le nombre de lignes par page (aucune coupure).
+ */
+export async function telechargerHtmlPdfPages(options: {
+  pages: string[];
+  css: string;
+  filename: string;
+  dir?: "rtl" | "ltr";
+  asBlob?: boolean;
+}): Promise<Blob | void> {
+  const { pages, css, filename, dir = "rtl" } = options;
+
+  const host = document.createElement("div");
+  host.style.cssText = `position:fixed;left:-10000px;top:0;width:${PAGE_W_PX}px;background:#fff;`;
+  const style = document.createElement("style");
+  style.textContent = css;
+  host.appendChild(style);
+  document.body.appendChild(host);
+
+  const { jsPDF } = await import("jspdf");
+  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  const scale = 2;
+
+  try {
+    for (const [i, pageHtml] of pages.entries()) {
+      const content = document.createElement("div");
+      content.setAttribute("dir", dir);
+      content.style.cssText = `width:${PAGE_W_PX}px;height:${PAGE_H_PX}px;overflow:hidden;background:#fff;`;
+      content.innerHTML = pageHtml;
+      host.appendChild(content);
+
+      await inlineImages(content);
+      await new Promise((r) => setTimeout(r, 40));
+
+      const svg = svgFromNode(content, css, PAGE_W_PX, PAGE_H_PX);
+      const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      const rendered = await loadImage(url);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = PAGE_W_PX * scale;
+      canvas.height = PAGE_H_PX * scale;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(rendered, 0, 0, canvas.width, canvas.height);
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(
+        canvas.toDataURL("image/jpeg", 0.95),
+        "JPEG",
+        0,
+        0,
+        A4_W_MM,
+        A4_H_MM,
+        undefined,
+        "FAST",
+      );
+
+      content.remove();
+    }
+
+    if (options.asBlob) return pdf.output("blob") as Blob;
+    pdf.save(filename);
+  } finally {
+    host.remove();
+  }
+}
