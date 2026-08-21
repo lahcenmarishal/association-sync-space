@@ -102,13 +102,17 @@ function DashboardPage() {
     const sum = (rows: { montant: number | string }[]) =>
       rows.reduce((tot, x) => tot + Number(x.montant), 0);
 
+    // Les dépenses liées à une caisse restent dans les rapports de caisse
+    // uniquement : elles n'entrent pas dans les totaux généraux.
+    const depensesHorsCaisse = depenses.filter((d) => !d.caisse_id);
+
     const totalRecettes = sum(recettes);
-    const totalDepenses = sum(depenses);
+    const totalDepenses = sum(depensesHorsCaisse);
 
     const parMois = Array.from({ length: 12 }, (_, i) => {
       const prefix = `${year}-${String(i + 1).padStart(2, "0")}`;
       const rec = sum(recettes.filter((x) => x.date.startsWith(prefix)));
-      const dep = sum(depenses.filter((x) => x.date.startsWith(prefix)));
+      const dep = sum(depensesHorsCaisse.filter((x) => x.date.startsWith(prefix)));
       return { mois: i, recettes: rec, depenses: dep, solde: rec - dep };
     });
 
@@ -129,14 +133,14 @@ function DashboardPage() {
       totalDepenses,
       solde: totalRecettes - totalDepenses,
       recettesJour: sum(recettes.filter((x) => x.date === jour)),
-      depensesJour: sum(depenses.filter((x) => x.date === jour)),
+      depensesJour: sum(depensesHorsCaisse.filter((x) => x.date === jour)),
       recettesMois: sum(recettes.filter((x) => x.date >= monthStart)),
-      depensesMois: sum(depenses.filter((x) => x.date >= monthStart)),
+      depensesMois: sum(depensesHorsCaisse.filter((x) => x.date >= monthStart)),
       recettesAnnee: sum(recettes.filter((x) => x.date >= yearStart)),
-      depensesAnnee: sum(depenses.filter((x) => x.date >= yearStart)),
+      depensesAnnee: sum(depensesHorsCaisse.filter((x) => x.date >= yearStart)),
       parMois,
       recettesParCategorie: groupBy(recettes),
-      depensesParCategorie: groupBy(depenses),
+      depensesParCategorie: groupBy(depensesHorsCaisse),
       caisseOuverte: caisse
         ? {
             id: caisse.id,
