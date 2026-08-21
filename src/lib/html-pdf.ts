@@ -123,11 +123,29 @@ export async function telechargerHtmlPdf(options: {
     // Points de coupure « sûrs » : bas des lignes de tableau et des blocs, afin
     // de ne jamais trancher une ligne en deux (ce qui produisait une bande noire).
     const stops = Array.from(
-      content.querySelectorAll("tr, .carte, .annexe-bloc, .liens-index li, figure, footer, header, h2, p"),
+      content.querySelectorAll(
+        "tr, .carte, .annexe-bloc, .liens-index li, figure, footer, header, h1, h2, h3, p, table, section, li",
+      ),
     )
       .map((el) => el.getBoundingClientRect().bottom - base.top)
       .filter((y) => y > 0 && y < height)
       .sort((a, b) => a - b);
+
+    // Repli : chercher une ligne de pixels entièrement claire (donc sans texte)
+    // pour couper sans traverser une ligne d'écriture.
+    const ctxRead = ctx;
+    const ligneVide = (yCss: number) => {
+      const y = Math.min(canvas.height - 1, Math.max(0, Math.round(yCss * scale)));
+      const data = ctxRead.getImageData(0, y, canvas.width, 1).data;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i]! < 245 || data[i + 1]! < 245 || data[i + 2]! < 245) return false;
+      }
+      return true;
+    };
+    const chercherBlanc = (limit: number, min: number) => {
+      for (let y = Math.floor(limit); y > min; y--) if (ligneVide(y)) return y;
+      return null;
+    };
 
     // Découpage en pages
     const cuts: { top: number; bottom: number }[] = [];
@@ -138,23 +156,41 @@ export async function telechargerHtmlPdf(options: {
         cuts.push({ top: cur, bottom: height });
         break;
       }
-      const safe = stops.filter((y) => y > cur + pageHeightCssPx * 0.3 && y <= limit).pop();
-      const bottom = safe ?? limit;
+      const min = cur + pageHeightCssPx * 0.3;
+      const safe = stops.filter((y) => y > min && y <= limit).pop();
+      // On valide la coupure : si elle traverse encore de l'encre, on remonte
+      // jusqu'à une bande blanche.
+      let bottom = safe ?? limit;
+      if (!ligneVide(bottom)) bottom = chercherBlanc(bottom, min) ?? bottom;
       cuts.push({ top: cur, bottom });
       cur = bottom;
     }
 
     cuts.forEach((c, i) => {
-      const sliceHeightCss = c.bottom - c.top;
+      // Découpe en pixels entiers de la source : évite le rééchantillonnage
+      // sous-pixel qui laissait une bande sombre en haut/bas de page.
+      const sy = Math.round(c.top * scale);
+      const syEnd = Math.min(canvas.height, Math.round(c.bottom * scale));
+      const sh = Math.max(1, syEnd - sy);
       const slice = document.createElement("canvas");
       slice.width = canvas.width;
-      slice.height = Math.round(sliceHeightCss * scale);
+      slice.height = sh;
       const sctx = slice.getContext("2d")!;
+      sctx.imageSmoothingEnabled = false;
       sctx.fillStyle = "#fff";
       sctx.fillRect(0, 0, slice.width, slice.height);
-      sctx.drawImage(canvas, 0, -Math.round(c.top * scale));
+      sctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
       if (i > 0) pdf.addPage();
-      pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, A4_W_MM, sliceHeightCss / pxPerMm);
+      pdf.addImage(
+        slice.toDataURL("image/jpeg", 0.95),
+        "JPEG",
+        0,
+        0,
+        A4_W_MM,
+        sh / scale / pxPerMm,
+        undefined,
+        "FAST",
+      );
     });
 
     // Zones cliquables : positionnées sur la page qui contient le lien.
