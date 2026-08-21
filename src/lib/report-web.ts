@@ -163,14 +163,13 @@ const PDF_CSS = `${CSS}
   .page-tab .pied { margin-top: auto; font-size: 12px; color: #557; display: flex; justify-content: space-between; }
 `;
 
-const LIGNES_PAGE_2 = 26;
-const LIGNES_PAGE_SUITE = 28;
+const LIGNES_PAR_PAGE = 26;
 
 function ligneHtml(l: RapportLigne) {
   return `<tr class="${l.variante ?? ""}">${l.cellules.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`;
 }
 
-/** Construit les pages du PDF : 1 page de stats + pages de 26 puis 28 lignes. */
+/** Construit les pages du PDF : 1 page de stats + pages de 26 lignes chacune. */
 function pagesPdf(rapport: RapportWeb): string[] {
   const resume = rapport.resume
     .map(
@@ -192,13 +191,12 @@ function pagesPdf(rapport: RapportWeb): string[] {
   <footer>التاريخ : ${new Date().toLocaleDateString("ar-MA")}</footer>
 </div>`;
 
-  // Découpage des lignes : 26 sur la première page de tableau, 28 ensuite.
+  // Découpage des lignes : 26 lignes par page de tableau.
   const groupes: RapportLigne[][] = [];
   let i = 0;
   while (i < rapport.lignes.length) {
-    const taille = groupes.length === 0 ? LIGNES_PAGE_2 : LIGNES_PAGE_SUITE;
-    groupes.push(rapport.lignes.slice(i, i + taille));
-    i += taille;
+    groupes.push(rapport.lignes.slice(i, i + LIGNES_PAR_PAGE));
+    i += LIGNES_PAR_PAGE;
   }
   if (!groupes.length) groupes.push([]);
 
