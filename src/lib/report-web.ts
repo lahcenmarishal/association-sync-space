@@ -207,7 +207,7 @@ function pagesPdf(rapport: RapportWeb): string[] {
   const pagesTab = groupes.map(
     (g, idx) => `<div class="page page-tab">
   <div class="tab-titre">${esc(rapport.titre)} — تفاصيل العمليات</div>
-  <div class="tableau"><table>${thead}<tbody>${
+  <div class="tableau"><table>${idx === 0 ? thead : ""}<tbody>${
       g.map(ligneHtml).join("") ||
       `<tr><td colspan="${rapport.entetes.length}">لا توجد بيانات</td></tr>`
     }</tbody></table></div>
