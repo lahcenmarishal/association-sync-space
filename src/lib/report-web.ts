@@ -148,7 +148,7 @@ const PDF_CSS = `${CSS}
   .couverture header h1 { font-size: 36px; margin-bottom: 10px; }
   .couverture header p { font-size: 20px; }
   .couverture .cv-titre { font-size: 30px; font-weight: 800; color: #0e7c7b; text-align: center; margin: 30px 0 20px; }
-  .couverture .resume { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; align-content: center; margin: 0; }
+  .couverture .resume { display: grid; grid-template-columns: 1fr; gap: 20px; flex: 1; align-content: center; margin: 0; max-width: 600px; margin-inline: auto; width: 100%; }
   .couverture .carte { border: 2px solid #0e7c7b; border-radius: 20px; padding: 22px 16px; display: flex; flex-direction: column; justify-content: center; }
   .couverture .carte .valeur { font-size: 40px; }
   .couverture .carte .label { font-size: 20px; margin-top: 10px; }
