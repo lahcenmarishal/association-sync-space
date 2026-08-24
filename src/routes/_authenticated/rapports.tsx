@@ -234,12 +234,16 @@ function RapportsPage() {
       nom: "—",
       nb: parCategorie.reduce((t, c) => t + c.nb, 0),
       total: formatMontant(
-        parCategorie.reduce((t, c) => t + c.total, 0),
+        parCategorie.reduce(
+          (t, c) => (c.type === tr("Recette") ? t + c.total : t - c.total),
+          0,
+        ),
         devise,
       ),
       __docs: [] as string[],
     },
   ];
+
 
   const activitesPeriode = activites.filter((a) => inPeriod(a.date));
 
@@ -293,35 +297,50 @@ function RapportsPage() {
 
 
   const actColumns = [
+    { header: tr("Date"), key: "date" },
+    { header: tr("Heure"), key: "heure" },
     { header: tr("Activité"), key: "titre" },
     { header: tr("Type"), key: "type" },
-    { header: tr("Date"), key: "date" },
+    { header: tr("Lieu"), key: "lieu" },
+    { header: tr("Responsable"), key: "responsable" },
     { header: tr("Budget prévu"), key: "prevu" },
     { header: tr("Dépensé"), key: "depense" },
+    { header: tr("Solde"), key: "solde" },
     { header: tr("Participants"), key: "participants" },
     { header: tr("Statut"), key: "statut" },
+    { header: tr("Description"), key: "description" },
   ];
   const actDepense = (id: string) =>
     depensesHorsCaisse.filter((x) => x.activite_id === id).reduce((t, x) => t + Number(x.montant), 0);
   const actRows = [
-    ...activitesPeriode.map((a) => ({
-      titre: a.titre,
-      type: tr(TYPE_ACTIVITE_LABELS[a.type_activite] ?? a.type_activite),
-      date: formatDate(a.date),
-      prevu: formatMontant(a.budget_prevu, devise),
-      depense: formatMontant(actDepense(a.id), devise),
-      participants: a.participants,
-      statut: tr(STATUT_ACTIVITE_LABELS[a.statut] ?? a.statut),
-      __docs: [
-        ...toPiecesJointes(a.photos),
-        ...toPiecesJointes(a.documents),
-        ...docsDesOperations(depensesHorsCaisse.filter((x) => x.activite_id === a.id)),
-      ],
-    })),
+    ...[...activitesPeriode]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((a) => ({
+        date: formatDate(a.date),
+        heure: a.heure || "—",
+        titre: a.titre,
+        type: tr(TYPE_ACTIVITE_LABELS[a.type_activite] ?? a.type_activite),
+        lieu: a.lieu || "—",
+        responsable: a.responsable_nom || "—",
+        prevu: formatMontant(a.budget_prevu, devise),
+        depense: formatMontant(actDepense(a.id), devise),
+        solde: formatMontant(Number(a.budget_prevu) - actDepense(a.id), devise),
+        participants: a.participants,
+        statut: tr(STATUT_ACTIVITE_LABELS[a.statut] ?? a.statut),
+        description: a.description || "—",
+        __docs: [
+          ...toPiecesJointes(a.photos),
+          ...toPiecesJointes(a.documents),
+          ...docsDesOperations(depensesHorsCaisse.filter((x) => x.activite_id === a.id)),
+        ],
+      })),
     {
-      titre: tr("Total"),
+      date: tr("Total"),
+      heure: "—",
+      titre: `${activitesPeriode.length} ${tr("activité(s)")}`,
       type: "—",
-      date: "—",
+      lieu: "—",
+      responsable: "—",
       prevu: formatMontant(
         activitesPeriode.reduce((t, a) => t + Number(a.budget_prevu), 0),
         devise,
@@ -330,11 +349,19 @@ function RapportsPage() {
         activitesPeriode.reduce((t, a) => t + actDepense(a.id), 0),
         devise,
       ),
+      solde: formatMontant(
+        activitesPeriode.reduce((t, a) => t + Number(a.budget_prevu) - actDepense(a.id), 0),
+        devise,
+      ),
       participants: activitesPeriode.reduce((t, a) => t + Number(a.participants), 0),
       statut: "—",
+      description: "—",
       __docs: [] as string[],
     },
   ];
+
+
+
 
 
   const completRows = [
