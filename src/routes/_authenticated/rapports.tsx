@@ -360,6 +360,45 @@ function RapportsPage() {
     },
   ];
 
+  const actResume: [string, string][] = [
+    ["عدد الأنشطة", String(activitesPeriode.length)],
+    [
+      "أنشطة منتهية",
+      String(activitesPeriode.filter((a) => a.statut === "terminee").length),
+    ],
+    [
+      "أنشطة جارية",
+      String(activitesPeriode.filter((a) => a.statut === "en_cours").length),
+    ],
+    [
+      "أنشطة مبرمجة",
+      String(activitesPeriode.filter((a) => a.statut === "prevue").length),
+    ],
+    [
+      "أنشطة ملغاة",
+      String(activitesPeriode.filter((a) => a.statut === "annulee").length),
+    ],
+    [
+      "عدد المشاركين",
+      String(activitesPeriode.reduce((t, a) => t + Number(a.participants), 0)),
+    ],
+    [
+      "الميزانية المتوقعة",
+      formatMontant(
+        activitesPeriode.reduce((t, a) => t + Number(a.budget_prevu), 0),
+        devise,
+      ),
+    ],
+    [
+      "الميزانية المنفقة",
+      formatMontant(
+        activitesPeriode.reduce((t, a) => t + actDepense(a.id), 0),
+        devise,
+      ),
+    ],
+  ];
+
+
 
 
 
@@ -964,6 +1003,7 @@ function RapportsPage() {
             titreAr="تقرير الأنشطة"
             columns={actColumns}
             rows={actRows}
+            resume={actResume}
           />
           <SimpleTable columns={actColumns} rows={actRows} />
         </TabsContent>
